@@ -316,7 +316,7 @@ v1.0.0 : Décembre 2026 (Production ready)
 | Risque | Impact | Probabilité | Mitigation |
 |--------|--------|-------------|------------|
 | Complexité de la synchronisation distribuée | Élevé | Moyen | Prototypage précoce, utilisation de bibliothèques éprouvées (rsync, git-like) |
-| Performance sur gros volumes (>100k médias) | Moyen | Élevé | Indexation agressive, pagination, benchmarking continu |
+| Performance sur gros volumes (>100k médias) | Moyen | Élevé | Indexation aggressive, pagination, benchmarking continu |
 | Cycles dans les compositions récursives | Moyen | Faible | Validation de graphe acyclique dirigé (DAG), limite de profondeur |
 | Parsing HM-DSS trop ambitieux | Moyen | Moyen | Commencer avec syntaxe minimale, itérer progressivement |
 
