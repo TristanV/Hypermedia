@@ -1,0 +1,1 @@
+"""Tests for Hypermedia package."""
