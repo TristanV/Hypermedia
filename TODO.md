@@ -3,53 +3,54 @@
 ## Phase 1 - Fondations HM-Drive (En cours)
 
 ### Infrastructure de base
-- [ ] Créer la structure du package Python `hypermedia/`
-  - [ ] `hypermedia/__init__.py`
-  - [ ] `hypermedia/drive/` (couche stockage)
-  - [ ] `hypermedia/scene/` (couche scènes)
-  - [ ] `hypermedia/common/` (utilitaires partagés)
-- [ ] Configurer les outils de développement
-  - [ ] Configuration pytest (`tests/`, `pytest.ini`)
-  - [ ] Configuration black (`.black.toml` ou `pyproject.toml`)
-  - [ ] Configuration mypy (`mypy.ini`)
-  - [ ] Pre-commit hooks (`.pre-commit-config.yaml`)
-- [ ] Créer environnement virtuel et dépendances
-  - [ ] `requirements.txt` (dépendances runtime)
-  - [ ] `requirements-dev.txt` (dépendances dev/test)
-  - [ ] `setup.py` ou `pyproject.toml` pour installation package
+- [x] Créer la structure du package Python `hypermedia/`
+  - [x] `hypermedia/__init__.py`
+  - [x] `hypermedia/drive/` (couche stockage)
+  - [x] `hypermedia/scene/` (couche scènes)
+  - [x] `hypermedia/common/` (utilitaires partagés)
+- [x] Configurer les outils de développement
+  - [x] Configuration pytest (`tests/`, `pytest.ini`)
+  - [x] Configuration black (`.black.toml` ou `pyproject.toml`)
+  - [x] Configuration mypy (`mypy.ini`)
+  - [x] Pre-commit hooks (`.pre-commit-config.yaml`)
+- [x] Créer environnement virtuel et dépendances
+  - [x] `requirements.txt` (dépendances runtime)
+  - [x] `requirements-dev.txt` (dépendances dev/test)
+  - [x] `setup.py` ou `pyproject.toml` pour installation package
 
 ### Système de collections local (HM-Drive)
-- [ ] Implémenter `hypermedia/drive/collection.py`
-  - [ ] Classe `MediaCollection` avec gestion locale
-  - [ ] Méthodes CRUD de base (add, get, delete, list)
-  - [ ] Gestion du répertoire de stockage local
-- [ ] Développer le système de checksums BLAKE2b
-  - [ ] `hypermedia/drive/checksum.py`
-  - [ ] Fonction `compute_blake2b(file_path)` 
-  - [ ] Fonction `verify_integrity(file_path, checksum)`
-- [ ] Implémenter la détection de doublons
-  - [ ] `hypermedia/drive/deduplication.py`
-  - [ ] Index des checksums par collection
-  - [ ] Détection avant ajout de nouveau média
-  - [ ] Options de politique (ignorer/référencer/alerter)
+- [ ] Améliorer `hypermedia/drive/collection.py`
+  - [x] Classe `MediaCollection` avec gestion locale (squelette existant)
+  - [ ] Compléter méthodes CRUD de base (add, get, delete, list)
+  - [ ] Intégration avec le système de base de données
+  - [ ] Gestion avancée du répertoire de stockage local
+- [x] Développer le système de checksums BLAKE2b
+  - [x] `hypermedia/drive/checksum.py` (implémenté)
+  - [x] Fonction `compute_blake2b(file_path)` 
+  - [x] Fonction `verify_integrity(file_path, checksum)`
+- [x] Implémenter la détection de doublons
+  - [x] `hypermedia/drive/deduplication.py` (implémenté)
+  - [x] Index des checksums par collection
+  - [x] Détection avant ajout de nouveau média
+  - [x] Options de politique (ignorer/référencer/alerter)
 
 ### Modèle de données SQLite
-- [ ] Créer le schéma de base de données
-  - [ ] `hypermedia/drive/models.py` avec définitions SQLAlchemy
-  - [ ] Table `media_items` (id, checksum, path, mime_type, size, created_at)
-  - [ ] Table `collections` (id, name, description, created_at)
-  - [ ] Table `collection_items` (relation many-to-many)
-  - [ ] Table `metadata` (key-value enrichi par item)
-- [ ] Implémenter le gestionnaire de base de données
-  - [ ] `hypermedia/drive/database.py`
-  - [ ] Connexion et initialisation du schéma
-  - [ ] Migrations (Alembic)
-  - [ ] Session management
+- [x] Créer le schéma de base de données
+  - [x] `hypermedia/drive/models.py` avec définitions SQLAlchemy
+  - [x] Table `media_items` (id, checksum, path, mime_type, size, created_at)
+  - [x] Table `collections` (id, name, description, created_at)
+  - [x] Table `collection_items` (relation many-to-many)
+  - [x] Table `metadata` (key-value enrichi par item)
+- [x] Implémenter le gestionnaire de base de données
+  - [x] `hypermedia/drive/database.py`
+  - [x] Connexion et initialisation du schéma
+  - [ ] Migrations (Alembic) - À faire
+  - [x] Session management
 
 ### Gestion des métadonnées enrichies
-- [ ] Développer l'extracteur de métadonnées
-  - [ ] `hypermedia/drive/metadata_extractor.py`
-  - [ ] Extraction EXIF (images)
+- [ ] Améliorer l'extracteur de métadonnées
+  - [x] `hypermedia/drive/metadata_extractor.py` (squelette existant)
+  - [ ] Extraction EXIF (images) - Implémentation à compléter
   - [ ] Extraction ID3/Vorbis (audio)
   - [ ] Extraction métadonnées vidéo (ffmpeg)
   - [ ] Extraction métadonnées documents (PDF, etc.)
@@ -67,13 +68,57 @@
 
 ### Documentation Phase 1
 - [x] README.md principal avec liens documentation
-- [ ] Docstrings complètes (style Google/NumPy)
-- [ ] Exemples d'usage dans `examples/phase1/`
-- [ ] Guide de contribution (`CONTRIBUTING.md`)
+- [ ] Docstrings complètes (style Google/NumPy) - En cours
+- [x] Exemples d'usage dans `examples/phase1/`
+- [x] Guide de contribution (`CONTRIBUTING.md`)
 
 ---
 
-## Phase 2 - API et Synchronisation (À venir)
+## Tâches prioritaires immédiates
+
+### À faire maintenant (Sprint actuel)
+1. **Compléter l'extracteur de métadonnées** (`metadata_extractor.py`)
+   - Implémenter extraction EXIF pour images
+   - Ajouter support audio (ID3, Vorbis)
+   - Ajouter support vidéo (ffmpeg)
+   - Gérer les erreurs et cas limites
+
+2. **Améliorer MediaCollection** (`collection.py`)
+   - Intégrer avec DatabaseManager
+   - Implémenter ajout de média avec détection de doublons
+   - Ajouter gestion des métadonnées lors de l'ajout
+   - Implémenter recherche et filtrage
+
+3. **Créer tests unitaires de base**
+   - Tests pour models.py (création, relations, contraintes)
+   - Tests pour database.py (connexion, sessions, transactions)
+   - Tests pour checksum.py (calcul, vérification)
+   - Tests pour deduplication.py (détection, politiques)
+
+4. **Documentation et exemples**
+   - Compléter docstrings pour tous les modules
+   - Créer guide d'utilisation rapide
+   - Ajouter exemples d'intégration
+
+### À planifier (Prochains sprints)
+5. **Migrations de base de données**
+   - Configurer Alembic
+   - Créer migration initiale
+   - Documentation de gestion des migrations
+
+6. **Optimisations et performance**
+   - Indexation optimale des colonnes
+   - Caching des checksums
+   - Batch operations pour imports massifs
+
+7. **CLI (Interface en ligne de commande)**
+   - Créer commandes de base (init, add, list, search)
+   - Intégration avec rich pour UI avancée
+   - Commandes d'export/import
+
+---
+
+## Phase 2 - API et Synchronisation (Planifié)
 
 ### API RESTful
 - [ ] Développer endpoints FastAPI
@@ -89,7 +134,7 @@
 
 ---
 
-## Phase 3 - HM-Scene (Système de scènes) (À venir)
+## Phase 3 - HM-Scene (Système de scènes) (Planifié)
 
 ### Architecture HM-Scene
 - [ ] Modèle de scènes multi-échelles
@@ -105,7 +150,7 @@
 
 ---
 
-## Phase 4 - Fonctionnalités Avancées (À venir)
+## Phase 4 - Fonctionnalités Avancées (Planifié)
 
 ### IA et Embeddings
 - [ ] Génération d'embeddings multimodaux
@@ -135,6 +180,15 @@
 
 ---
 
-**Dernière mise à jour** : 2026-02-10  
+## Changelog
+
+### 2026-02-10 - Implémentations majeures Phase 1
+- ✅ Implémentation complète des modèles SQLAlchemy (models.py)
+- ✅ Implémentation complète du DatabaseManager (database.py)
+- ✅ Création d'exemples d'utilisation Phase 1
+- ✅ Mise à jour de la TODO list
+
+**Dernière mise à jour** : 2026-02-10 02:40 CET  
 **Phase active** : Phase 1 - Fondations HM-Drive  
-**Statut** : Initialisation
+**Statut** : En développement actif - Modèles et DB implémentés
+**Progression Phase 1** : ~45% (fondations solides posées)
