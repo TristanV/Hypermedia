@@ -1,351 +1,424 @@
-# ROADMAP - Projet Hypermedia (HM)
+# Roadmap du projet Hypermedia
 
-## Vision du projet
+## Vision et objectifs stratégiques
 
-**Hypermedia (HM)** est une librairie Python générique, portable et résiliente pour la gestion décentralisée d'hypermedia. Elle permet de créer, stocker, organiser et naviguer dans des collections de media (images, vidéos, audio, texte) et d'hypermedia composites, avec un système de fichiers distribué (HM-drive) et un langage de mise en scène (HM-DSS).
+**Hypermedia (HM)** est une librairie Python portable destinée à créer un écosystème distribué et résilient de gestion d'hyperdocuments multimédia. Le projet extrait et généralise les concepts clés de **prompt-imagine** pour construire une infrastructure modulaire, multi-plateforme et extensible.
 
-**Objectif central** : Extraire et généraliser les concepts structurants de **prompt-imagine** pour construire une infrastructure hypermedia universelle, déployable sur tout système d'exploitation, avec synchronisation, résilience et navigation multi-dimensionnelle.
+### Objectifs principaux
+
+1. **Portabilité maximale** : Code Python pur, déployable sur tout OS (Linux, macOS, Windows) et tout type de machine
+2. **Décentralisation partielle** : Architecture de stockage distribuée avec synchronisation locale et résilience à la déconnexion
+3. **Composition récursive** : Support d'hypermedia composites (médias simples + hypermedia imbriqués)
+4. **Mise en scène dynamique** : Système de présentation adaptative via langage HM-DSS
+5. **Extensibilité** : Architecture modulaire permettant l'ajout de nouveaux formats, protocoles et modes de visualisation
 
 ---
 
-## Phases du projet
+## Architecture en trois couches
 
-### Phase 0 : Fondations et analyse (COMPLÉTÉE)
+```
+┌─────────────────────────────────────────────────────┐
+│           HM-SCENE (Couche Présentation)            │
+│  • Mise en scène adaptative                         │
+│  • Langage HM-DSS (Dynamic Scene Sheet)             │
+│  • Navigation et déambulation                       │
+└─────────────────────────────────────────────────────┘
+                         ↕
+┌─────────────────────────────────────────────────────┐
+│        MÉTADONNÉES & DESCRIPTEURS (Couche Sémantique)│
+│  • Définisseurs pondérés (prompts)                  │
+│  • Tags et taxonomies                               │
+│  • Relations généalogiques                          │
+└─────────────────────────────────────────────────────┘
+                         ↕
+┌─────────────────────────────────────────────────────┐
+│          HM-DRIVE (Couche Stockage)                 │
+│  • Système de fichiers distribué                    │
+│  • Synchronisation et cache local                   │
+│  • Collections arborescentes                        │
+│  • URI unifiés                                      │
+└─────────────────────────────────────────────────────┘
+```
 
-**Durée estimée** : 1-2 semaines
+---
 
-**Objectifs** :
-- ✅ Analyse exhaustive du dépôt prompt-imagine
-- ✅ Identification des éléments réutilisables (métadonnées, checksums, collections, liens généalogiques)
-- ✅ Définition de l'architecture conceptuelle HM
-- ✅ Création de la documentation initiale (roadmap, spécifications)
+## Phases de développement
+
+### Phase 0 : Préparation et architecture (Semaines 1-2) ✅ EN COURS
+
+**Objectif** : Poser les fondations conceptuelles et organisationnelles
+
+- [x] Analyse approfondie de prompt-imagine
+- [x] Identification des patterns réutilisables
+- [x] Création du dépôt GitHub TristanV/Hypermedia
+- [x] Rédaction de la documentation initiale (roadmap, spécifications)
+- [ ] Définition de l'architecture modulaire
+- [ ] Choix des dépendances Python (minimales)
+- [ ] Setup du projet (structure de dossiers, requirements.txt, tests)
 
 **Livrables** :
-- ✅ ROADMAP.md
-- 🔄 SPECIFICATIONS_FONCTIONNELLES.md (en cours)
-- 🔄 SPECIFICATIONS_TECHNIQUES.md (en cours)
-- 🔄 ARCHITECTURE_HM_DRIVE.md (en cours)
-- 🔄 ARCHITECTURE_HM_SCENE.md (en cours)
+- Documentation complète (ROADMAP, SPECIFICATIONS_FONCTIONNELLES, SPECIFICATIONS_TECHNIQUES)
+- Structure de projet Python avec modules vides
+- Environnement de test configuré (pytest)
 
 ---
 
-### Phase 1 : Noyau HM-drive (Stockage distribué)
+### Phase 1 : HM-Drive Core (Semaines 3-6)
 
-**Durée estimée** : 6-8 semaines
+**Objectif** : Implémenter le système de stockage distribué de base
 
-**Objectifs** :
-- Implémenter le système de fichiers distribué HM-drive
-- Système de synchronisation locale et distante
-- Gestion de la résilience (déconnexion, destruction de ressources)
-- Système d'URI unifié pour adresser les media
+#### Jalon 1.1 : Stockage local (Semaine 3)
+- [ ] Classe `HMDrive` avec dossier principal
+- [ ] Gestion des collections (arborescence de dossiers)
+- [ ] URI unifiés pour adressage des médias (`hm://collection/path/to/media`)
+- [ ] Métadonnées physiques (checksums BLAKE2b, taille, format, timestamps)
+- [ ] Support multi-formats (image: jpg/png/webp, vidéo: mp4/webm, audio: mp3/wav, texte: txt/md)
 
-#### Jalons Phase 1
+#### Jalon 1.2 : Système de cache (Semaine 4)
+- [ ] Cache local pour médias distants
+- [ ] Politique d'éviction (LRU, taille maximale configurable)
+- [ ] Indexation des médias en cache
+- [ ] Mécanisme de préchargement (prefetching)
 
-**1.1 - Système de fichiers local (2 semaines)**
-- Structure arborescente de collections (dossiers)
-- Gestion des media simples (image, audio, vidéo, texte)
-- Métadonnées de base (checksums BLAKE2b, taille, timestamps)
-- Liens symboliques entre collections
-- Tests unitaires sur système de fichiers local
+#### Jalon 1.3 : Synchronisation basique (Semaine 5)
+- [ ] Abonnements mono-directionnels (lecture seule)
+- [ ] Détection des changements (polling ou watchdog)
+- [ ] Copie incrémentale des nouveaux médias
+- [ ] Gestion des conflits (timestamps)
 
-**1.2 - API HM-drive (2 semaines)**
-- Interface Python pour créer/lire/mettre à jour/supprimer des media
-- Gestion transactionnelle des opérations
-- Système d'URI HM (`hm://instance/collection/media`)
-- Documentation API complète
+#### Jalon 1.4 : Résilience et robustesse (Semaine 6)
+- [ ] Mode hors-ligne (fallback sur cache)
+- [ ] Détection de déconnexion/reconnexion
+- [ ] Transactions atomiques pour les métadonnées
+- [ ] Logs et traçabilité des opérations
+
+**Livrables** :
+- Module `hm.drive` fonctionnel
+- Tests unitaires (couverture > 80%)
+- Documentation API
 - Exemples d'utilisation
 
-**1.3 - Synchronisation et abonnements (2 semaines)**
-- Mécanisme d'abonnement mono/bi-directionnel entre instances
-- Synchronisation incrémentale (détection des changements)
-- Cache local pour dossiers distants
-- Gestion des conflits (stratégies de résolution)
+---
 
-**1.4 - Résilience et tolérance aux pannes (2 semaines)**
-- Détection automatique de déconnexion
-- Mode dégradé (accès cache uniquement)
-- Reconstruction après reconnexion
-- Vérification d'intégrité (checksums)
-- Logs et traçabilité des opérations
+### Phase 2 : Métadonnées et descripteurs (Semaines 7-9)
 
-**Livrables Phase 1** :
-- Module `hm.drive` (Python)
-- Tests unitaires et d'intégration (coverage > 80%)
-- Documentation technique API
-- Exemples de configurations (mono-instance, multi-instances)
+**Objectif** : Enrichir les médias avec métadonnées sémantiques
+
+#### Jalon 2.1 : Système de métadonnées (Semaine 7)
+- [ ] Schéma de métadonnées extensible (JSON/YAML)
+- [ ] Métadonnées physiques vs. sémantiques
+- [ ] Système de tags avec autocomplétion
+- [ ] Taxonomies et ontologies (optionnel)
+
+#### Jalon 2.2 : Définisseurs pondérés (Semaine 8)
+- [ ] Modèle de "prompts" généralisés (définisseurs textuels pondérés)
+- [ ] Parsing des définisseurs (poids, catégories, négations)
+- [ ] Indexation pour recherche full-text
+- [ ] Génération de wordclouds à partir des définisseurs
+
+#### Jalon 2.3 : Relations généalogiques (Semaine 9)
+- [ ] Graphe de relations (ancêtres/descendants)
+- [ ] Références croisées entre médias
+- [ ] Visualisation de la généalogie (export GraphML/DOT)
+- [ ] Héritage de métadonnées (propagation configurable)
+
+**Livrables** :
+- Module `hm.metadata` fonctionnel
+- Base de données SQLite pour métadonnées
+- Requêtes complexes (tags, définisseurs, généalogie)
+- Documentation des schémas
 
 ---
 
-### Phase 2 : Hypermedia composites et métadonnées
+### Phase 3 : Hypermedia composites (Semaines 10-12)
 
-**Durée estimée** : 4-6 semaines
+**Objectif** : Support des hypermedia récursifs
 
-**Objectifs** :
-- Définir et implémenter les hypermedia composites (compositions récursives)
-- Système de métadonnées enrichies (descripteurs, tags, définisseurs pondérés)
-- Migration des concepts "prompts" de prompt-imagine vers "définisseurs"
+#### Jalon 3.1 : Format hypermedia (Semaine 10)
+- [ ] Spécification du format `.hm` (JSON/YAML)
+- [ ] Référencement de médias locaux et distants
+- [ ] Composition récursive (hypermedia contenant des hypermedia)
+- [ ] Validation de la structure
 
-#### Jalons Phase 2
+#### Jalon 3.2 : Résolution d'URI (Semaine 11)
+- [ ] Résolution d'URI distants (`hm://instance_id/collection/media`)
+- [ ] Téléchargement à la demande
+- [ ] Gestion des dépendances transitives
+- [ ] Détection de cycles (références circulaires)
 
-**2.1 - Format Hypermedia (1 semaine)**
-- Spécification du format de fichier `.hm` (JSON structuré)
-- Structure récursive : hypermedia contenant media simples ou hypermedia
-- Références URI vers media locaux ou distants
-- Validation de schéma (JSON Schema)
+#### Jalon 3.3 : Liens symboliques (Semaine 12)
+- [ ] Liens entre collections (navigation non linéaire)
+- [ ] Résolution de liens symboliques
+- [ ] Liens externes (vers autres instances HM-Drive)
+- [ ] Gestion des liens cassés
 
-**2.2 - Système de métadonnées (2 semaines)**
-- Métadonnées physiques (format, résolution, durée, codec)
-- Descripteurs sémantiques (titre, description, auteur)
-- Tags hiérarchiques et auto-complétion
-- Définisseurs pondérés (inspirés des prompts de prompt-imagine)
-- Persistance SQLite embarquée par instance
-
-**2.3 - Relations et généalogie (2 semaines)**
-- Relations parent/enfant (dérivation, raffinement)
-- Relations sémantiques (similitude, opposition, complémentarité)
-- Graphe de navigation (ancêtres, descendants)
-- Requêtes de traversée du graphe
-
-**2.4 - Indexation et recherche (1 semaine)**
-- Indexation full-text (titre, description, tags, définisseurs)
-- Recherche par critères multiples (date, collection, type media)
-- Recherche par similarité (checksums, métadonnées)
-
-**Livrables Phase 2** :
-- Module `hm.media` (media simples et hypermedia)
-- Module `hm.metadata` (descripteurs, tags, définisseurs)
-- Module `hm.relations` (graphe de navigation)
-- Base de données SQLite avec schéma optimisé
-- Tests et documentation
+**Livrables** :
+- Module `hm.composite` fonctionnel
+- Parser et validateur de format `.hm`
+- Tests d'intégration pour compositions complexes
 
 ---
 
-### Phase 3 : HM-Scene (Système de mise en scène)
+### Phase 4 : Synchronisation avancée (Semaines 13-15)
 
-**Durée estimée** : 6-8 semaines
+**Objectif** : Implémenter la synchronisation bidirectionnelle
 
-**Objectifs** :
-- Créer le langage HM-DSS (Hypermedia Dynamic Scene Sheet)
-- Moteur de rendu adaptatif multi-supports
-- Navigation et déambulation dans les hypermedia
+#### Jalon 4.1 : Protocole de synchronisation (Semaine 13)
+- [ ] API REST pour communication inter-instances
+- [ ] Authentification et autorisation (tokens, JWT)
+- [ ] Endpoints CRUD pour médias et métadonnées
+- [ ] Protocole de découverte d'instances (mDNS/Zeroconf)
 
-#### Jalons Phase 3
+#### Jalon 4.2 : Sync bidirectionnelle (Semaine 14)
+- [ ] Abonnements bidirectionnels
+- [ ] Résolution de conflits (merge automatique ou manuel)
+- [ ] Versionnement des médias (optionnel)
+- [ ] Propagation des suppressions
 
-**3.1 - Spécification HM-DSS (2 semaines)**
-- Syntaxe inspirée de CSS avec extensions hypermedia
-- Sélecteurs de media (par type, collection, tags, métadonnées)
-- Propriétés de mise en scène (layout, pagination, transitions)
-- Gestion des vues multiples et facettes
-- Document de spécification formelle
+#### Jalon 4.3 : Performance et optimisation (Semaine 15)
+- [ ] Transfert différentiel (rsync-like)
+- [ ] Compression des flux (gzip, zstd)
+- [ ] Parallélisation des téléchargements
+- [ ] Métriques de performance (débit, latence)
 
-**3.2 - Parseur et validateur HM-DSS (1 semaine)**
-- Parseur de fichiers `.hm-dss`
-- Validation syntaxique et sémantique
-- AST (Abstract Syntax Tree) pour représentation interne
-- Messages d'erreur explicites
-
-**3.3 - Moteur de rendu (3 semaines)**
-- Adaptateurs multi-supports (web, terminal, GUI native)
-- Système de pagination dynamique
-- Gestion des transitions et animations
-- Cache de rendu pour performance
-- Rendu différentiel (mise à jour incrémentale)
-
-**3.4 - Navigation et interaction (2 semaines)**
-- Système de liens inter-media (navigation hypertextuelle)
-- Déambulation multi-dimensionnelle (temps, espace, abstraction)
-- Historique de navigation (back/forward)
-- Bookmarks et points de sauvegarde
-- Événements utilisateur (clic, hover, scroll)
-
-**Livrables Phase 3** :
-- Module `hm.scene` (moteur de scènes)
-- Module `hm.dss` (parseur et validateur)
-- Adaptateurs de rendu (HTML/CSS, terminal, Tkinter)
-- Exemples de scènes (galeries, diaporamas, graphes)
-- Documentation HM-DSS complète
+**Livrables** :
+- Module `hm.sync` fonctionnel
+- API REST documentée (OpenAPI/Swagger)
+- Tests d'intégration multi-instances
+- Benchmarks de performance
 
 ---
 
-### Phase 4 : Outils et écosystème
+### Phase 5 : HM-Scene et langage HM-DSS (Semaines 16-20)
 
-**Durée estimée** : 4-6 semaines
+**Objectif** : Système de mise en scène et navigation dynamique
 
-**Objectifs** :
-- CLI (Command Line Interface) pour HM
-- Interface web de gestion (inspirée de prompt-imagine)
-- Outils de migration et d'import
-- Packaging et déploiement
+#### Jalon 5.1 : Modèle de scène (Semaine 16)
+- [ ] Classe `HMScene` pour représentation d'une vue
+- [ ] Adaptation aux supports (desktop, mobile, CLI, web)
+- [ ] Système de layouts (grille, liste, mosaïque, timeline)
+- [ ] Pagination dynamique
 
-#### Jalons Phase 4
+#### Jalon 5.2 : Langage HM-DSS (Semaines 17-18)
+- [ ] Spécification du langage (inspiré de CSS)
+- [ ] Parser HM-DSS (YAML/DSL custom)
+- [ ] Sélecteurs (par type, tag, collection, métadonnées)
+- [ ] Règles de style (taille, position, ordre, visibilité)
+- [ ] Propriétés dynamiques (transitions, animations)
 
-**4.1 - CLI Hypermedia (2 semaines)**
-- Commandes de gestion HM-drive (`hm init`, `hm sync`, `hm status`)
-- Commandes de gestion media (`hm add`, `hm rm`, `hm ls`, `hm search`)
-- Commandes de gestion collections (`hm collection create/list/delete`)
-- Commandes de scènes (`hm scene render`, `hm scene validate`)
-- Autocomplétion shell (bash, zsh)
+#### Jalon 5.3 : Moteur de rendu (Semaine 19)
+- [ ] Rendu HTML/CSS pour web
+- [ ] Rendu terminal (rich/textual pour CLI)
+- [ ] Export statique (galerie HTML)
+- [ ] Prévisualisation en temps réel
 
-**4.2 - Interface web (3 semaines)**
-- Application Flask/FastAPI légère
-- Galeries de collections (grille, liste, timeline)
-- Visualisation de media et hypermedia
-- Éditeur de métadonnées (tags, définisseurs)
-- Éditeur HM-DSS avec prévisualisation
-- Système de recherche et filtres
+#### Jalon 5.4 : Navigation et interactions (Semaine 20)
+- [ ] Navigation non linéaire (liens, retour arrière)
+- [ ] Filtres interactifs (par tag, date, collection)
+- [ ] Recherche full-text
+- [ ] Lightbox et zoom (pour images)
+- [ ] Lecture vidéo/audio intégrée
 
-**4.3 - Outils de migration (1 semaine)**
-- Script de migration depuis prompt-imagine
-- Conversion des prompts en définisseurs pondérés
-- Import de backups NightCafe
-- Import générique depuis CSV/JSON
-
-**Livrables Phase 4** :
-- Package `hm-cli` (installable via pip)
-- Application web `hm-web`
-- Scripts de migration dans `tools/`
-- Documentation d'utilisation complète
+**Livrables** :
+- Module `hm.scene` fonctionnel
+- Spécification complète HM-DSS
+- Exemples de scènes (galerie, timeline, graphe)
+- Documentation utilisateur
 
 ---
 
-### Phase 5 : Optimisation et production
+### Phase 6 : Migration et compatibilité (Semaines 21-22)
 
-**Durée estimée** : 3-4 semaines
+**Objectif** : Faciliter la migration depuis prompt-imagine
 
-**Objectifs** :
-- Optimisation des performances
-- Sécurisation et audit
-- Packaging professionnel
-- Documentation avancée
+#### Jalon 6.1 : Outil de migration (Semaine 21)
+- [ ] Script d'import depuis bases SQLite prompt-imagine
+- [ ] Conversion des métadonnées (prompts → définisseurs)
+- [ ] Préservation des relations généalogiques
+- [ ] Migration des collections et tags
 
-#### Jalons Phase 5
+#### Jalon 6.2 : Rétrocompatibilité (Semaine 22)
+- [ ] Lecture des formats legacy (CSV backups NightCafe)
+- [ ] Export vers formats standards (JSON, CSV)
+- [ ] Interopérabilité avec prompt-imagine (mode hybrid)
 
-**5.1 - Performance (1 semaine)**
-- Profiling et identification des goulots
-- Optimisation des requêtes SQLite (index, requêtes préparées)
-- Cache multi-niveaux (mémoire, disque)
-- Parallélisation des opérations (synchronisation, thumbnails)
-
-**5.2 - Sécurité (1 semaine)**
-- Validation stricte des chemins de fichiers
-- Sanitisation des entrées utilisateur
-- Chiffrement optionnel des media (AES-256)
-- Authentification entre instances (tokens JWT)
-- Audit de sécurité automatisé
-
-**5.3 - Packaging et déploiement (1 semaine)**
-- Package PyPI (`pip install hypermedia`)
-- Images Docker (instance standalone, cluster)
-- Documentation d'installation multi-OS (Linux, macOS, Windows)
-- Scripts de déploiement automatisés
-
-**5.4 - Documentation finale (1 semaine)**
-- Tutoriels pas-à-pas
-- Cookbook avec cas d'usage courants
-- Documentation API complète (Sphinx)
-- Vidéos de démonstration
-- FAQ et troubleshooting
-
-**Livrables Phase 5** :
-- Version 1.0.0 stable sur PyPI
-- Images Docker sur Docker Hub
-- Site de documentation (Read the Docs)
-- Tutoriels et exemples avancés
+**Livrables** :
+- Script `migrate_from_prompt_imagine.py`
+- Documentation de migration
+- Exemples de conversion
 
 ---
 
-## Phases futures (post-1.0)
+### Phase 7 : Interface utilisateur (Semaines 23-26)
 
-### Phase 6 : Extensions et intégrations (optionnel)
+**Objectif** : Créer des interfaces conviviales
 
-**Objectifs** :
-- Intégration IA (génération de définisseurs automatiques, recherche sémantique)
-- Plugins pour éditeurs (VS Code, Obsidian)
-- Support de nouveaux formats media (3D, VR, AR)
-- Système de versioning avancé (branches, merges)
-- Collaboration temps réel (CRDT)
+#### Jalon 7.1 : CLI (Semaine 23)
+- [ ] Commandes de gestion (init, add, sync, search)
+- [ ] Interface interactive (questionary/prompt_toolkit)
+- [ ] Rendu terminal riche (rich/textual)
 
-### Phase 7 : Communauté et gouvernance (optionnel)
+#### Jalon 7.2 : API HTTP (Semaine 24)
+- [ ] Serveur Flask/FastAPI
+- [ ] Endpoints REST complets
+- [ ] WebSockets pour sync temps réel
+- [ ] Documentation interactive (Swagger UI)
 
-**Objectifs** :
-- Ouverture du dépôt en open-source
-- Contributions communautaires (guidelines, code review)
-- Écosystème de plugins tiers
-- Galerie de scènes partagées
-- Forum et support communautaire
+#### Jalon 7.3 : Interface Web (Semaines 25-26)
+- [ ] Frontend moderne (Vue.js/React ou templates Jinja2)
+- [ ] Galerie responsive
+- [ ] Éditeur de scènes HM-DSS (WYSIWYG)
+- [ ] Gestionnaire de collections et tags
 
----
-
-## Indicateurs de succès
-
-### Critères techniques
-- ✅ Portabilité : Fonctionne sur Linux, macOS, Windows sans modification
-- ✅ Résilience : Tolérance à 100% des déconnexions sans perte de données
-- ✅ Performance : Synchronisation < 100ms pour 1000 fichiers, recherche < 50ms
-- ✅ Couverture de tests : > 80% sur tous les modules critiques
-- ✅ Documentation : 100% des API publiques documentées
-
-### Critères fonctionnels
-- ✅ Simplicité : Installation en 1 commande, configuration en < 5 minutes
-- ✅ Flexibilité : Support de tous formats media courants + extensions
-- ✅ Expressivité : HM-DSS permet de créer des scènes complexes en < 50 lignes
-- ✅ Migration : Import depuis prompt-imagine sans perte d'information
-
-### Critères d'adoption
-- 🎯 10 utilisateurs actifs à 3 mois
-- 🎯 100 media gérés par utilisateur en moyenne
-- 🎯 5 scènes HM-DSS partagées par la communauté
-- 🎯 3 contributions externes acceptées
+**Livrables** :
+- CLI `hm` fonctionnelle
+- Serveur web déployable
+- Interface web responsive
 
 ---
 
-## Dépendances et risques
+### Phase 8 : Finalisation et release (Semaines 27-28)
 
-### Dépendances techniques
-- **Python 3.8+** : Compatibilité avec anciennes versions limitée
-- **SQLite** : Limitations pour très grandes bases (> 1M media)
-- **Pillow / OpenCV** : Pour génération de thumbnails
-- **Réseau** : Synchronisation nécessite connectivité stable
+**Objectif** : Préparer la première version stable
 
-### Risques identifiés
+#### Jalon 8.1 : Tests et qualité (Semaine 27)
+- [ ] Tests d'intégration end-to-end
+- [ ] Tests de charge (performance, scalabilité)
+- [ ] Analyse de sécurité (injection, XSS, CSRF)
+- [ ] Couverture de code > 85%
+
+#### Jalon 8.2 : Documentation et packaging (Semaine 28)
+- [ ] Documentation utilisateur complète
+- [ ] Tutoriels et guides
+- [ ] Packaging PyPI (pip install hypermedia)
+- [ ] Docker images
+- [ ] CI/CD (GitHub Actions)
+
+#### Jalon 8.3 : Release 1.0.0
+- [ ] Tag version 1.0.0
+- [ ] Annonce publique
+- [ ] Collecte de retours utilisateurs
+
+**Livrables** :
+- Version 1.0.0 stable
+- Package PyPI publié
+- Documentation hébergée (ReadTheDocs)
+
+---
+
+## Jalons critiques et dépendances
+
+### Chemin critique
+
+```
+Phase 0 → Phase 1 (HM-Drive) → Phase 2 (Métadonnées) → Phase 3 (Composites)
+                                                              ↓
+                                            Phase 4 (Sync avancée)
+                                                              ↓
+                                            Phase 5 (HM-Scene)
+                                                              ↓
+                              Phase 6 (Migration) + Phase 7 (UI)
+                                                              ↓
+                                            Phase 8 (Release)
+```
+
+### Dépendances entre phases
+
+- **Phase 2** dépend de **Phase 1** (métadonnées stockées dans HM-Drive)
+- **Phase 3** dépend de **Phase 1** (références URI)
+- **Phase 4** dépend de **Phase 1** (synchronisation des drives)
+- **Phase 5** dépend de **Phase 2** et **Phase 3** (affichage des métadonnées et composites)
+- **Phase 6** peut démarrer en parallèle de **Phase 5**
+- **Phase 7** dépend de **Phases 1-5** (toutes les fonctionnalités de base)
+
+---
+
+## Risques et mitigations
+
+### Risques techniques
 
 | Risque | Impact | Probabilité | Mitigation |
 |--------|--------|-------------|------------|
-| Conflits de synchronisation complexes | Élevé | Moyen | Stratégies CRDT, résolution manuelle en dernier recours |
-| Performance sur très grandes collections (> 100k media) | Moyen | Élevé | Pagination, indexation optimisée, cache agressif |
-| Complexité du langage HM-DSS | Moyen | Moyen | Templates prêts à l'emploi, éditeur avec validation temps réel |
-| Fragmentation des formats media | Faible | Élevé | Système de plugins pour formats exotiques |
-| Adoption utilisateur limitée | Élevé | Moyen | Documentation excellente, exemples concrets, migration facile |
+| Complexité de la synchronisation bidirectionnelle | Élevé | Moyen | Implémenter d'abord sync unidirectionnelle (Phase 1), puis bidirectionnelle (Phase 4) |
+| Performance du cache avec gros volumes | Moyen | Élevé | Benchmarks précoces, indexation efficace, compression |
+| Portabilité cross-platform | Moyen | Faible | Utiliser pathlib, éviter les dépendances OS-spécifiques |
+| Sécurité des sync distantes | Élevé | Moyen | HTTPS obligatoire, authentification robuste (JWT), sandboxing |
+| Complexité du langage HM-DSS | Moyen | Moyen | Commencer simple (subset CSS), itérer selon besoins |
+
+### Risques organisationnels
+
+| Risque | Impact | Probabilité | Mitigation |
+|--------|--------|-------------|------------|
+| Dérive du scope (feature creep) | Élevé | Élevé | Priorisation stricte, MVP first, roadmap versionnée |
+| Documentation insuffisante | Moyen | Moyen | Documenter au fil de l'eau, reviews régulières |
+| Manque de tests | Élevé | Moyen | TDD, couverture minimale 80%, CI/CD |
 
 ---
 
-## Calendrier prévisionnel
+## Évolutions futures (post-1.0)
 
-```
-Phase 0 : ████████ (2 semaines)   - Février 2026
-Phase 1 : ████████████████ (8 semaines) - Février - Avril 2026
-Phase 2 : ████████████ (6 semaines)     - Avril - Mai 2026
-Phase 3 : ████████████████ (8 semaines) - Mai - Juillet 2026
-Phase 4 : ████████████ (6 semaines)     - Juillet - Août 2026
-Phase 5 : ████████ (4 semaines)         - Août - Septembre 2026
+### Version 1.1 : Extensibilité
+- Système de plugins pour nouveaux formats
+- API publique pour extensions tierces
+- Marketplace de scènes HM-DSS
 
-Version 1.0.0 : Septembre 2026
-```
+### Version 1.2 : Intelligence artificielle
+- Auto-tagging par vision par ordinateur
+- Génération automatique de définisseurs
+- Recommandations de médias similaires
+- Clustering automatique de collections
 
-**Total estimé** : 7-8 mois de développement actif
+### Version 1.3 : Collaboration
+- Édition collaborative temps réel
+- Commentaires et annotations
+- Historique de versions (git-like)
+- Permissions granulaires
+
+### Version 2.0 : Décentralisation complète
+- Architecture P2P (libp2p, IPFS)
+- Blockchain pour traçabilité (optionnel)
+- Chiffrement end-to-end
+- Identités décentralisées (DID)
 
 ---
 
-## Prochaines étapes immédiates
+## Métriques de succès
 
-1. ✅ Finaliser la documentation (spécifications fonctionnelles et techniques)
-2. 🔄 Créer la structure initiale du projet Python (`hm/` avec sous-modules)
-3. 🔄 Implémenter le noyau HM-drive local (Phase 1.1)
-4. 🔄 Écrire les premiers tests unitaires
-5. 🔄 Mettre en place CI/CD (GitHub Actions)
+### Métriques techniques
+- **Performance** : Synchronisation < 1s pour 100 médias, recherche < 100ms
+- **Fiabilité** : Disponibilité > 99%, zéro perte de données
+- **Scalabilité** : Support de 100k+ médias par instance
+- **Qualité** : Couverture de tests > 85%, zéro vulnérabilité critique
+
+### Métriques utilisateur
+- **Adoption** : 100+ installations en 6 mois post-release
+- **Documentation** : Temps de prise en main < 1h pour utilisateur avancé
+- **Satisfaction** : Score NPS > 40
 
 ---
 
-**Dernière mise à jour** : 10 février 2026  
-**Version** : 1.0  
-**Statut** : Phase 0 complétée, Phase 1 en préparation
+## Ressources et estimation
+
+### Effort estimé
+- **Phase 0** : 2 semaines (documentation, architecture)
+- **Phases 1-4** : 13 semaines (core backend)
+- **Phase 5** : 5 semaines (HM-Scene)
+- **Phases 6-7** : 6 semaines (migration, UI)
+- **Phase 8** : 2 semaines (finalisation)
+- **Total** : **28 semaines** (~7 mois) pour 1 développeur full-time
+
+### Stack technologique
+- **Langage** : Python 3.10+
+- **Dépendances core** : pathlib, hashlib (stdlib), SQLite, requests
+- **Dépendances optionnelles** : Flask/FastAPI, Pillow, watchdog, rich, wordcloud
+- **Tests** : pytest, pytest-cov, hypothesis
+- **CI/CD** : GitHub Actions
+- **Documentation** : Sphinx, ReadTheDocs
+
+---
+
+## Conclusion
+
+Cette roadmap propose un développement structuré et incrémental de la librairie **Hypermedia**, avec des jalons clairs et des livrables tangibles à chaque phase. L'approche modulaire permet de tester et valider chaque composant indépendamment, tout en préservant la cohérence architecturale globale.
+
+Le projet vise à créer une infrastructure pérenne, extensible et facile à déployer pour la gestion d'hyperdocuments multimédia distribués, en capitalisant sur les acquis de **prompt-imagine** tout en généralisant les concepts pour un usage plus large.
