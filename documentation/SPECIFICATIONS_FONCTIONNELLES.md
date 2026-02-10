@@ -1,1000 +1,1332 @@
-# Spécifications fonctionnelles - Hypermedia
+# Spécifications Fonctionnelles - Hypermedia
 
-## 1. Contexte et objectifs
+## 1. Introduction
 
-### 1.1 Contexte du projet
+### 1.1 Contexte
 
-Le projet **Hypermedia** naît de l'observation des limites des systèmes actuels de gestion de médias :
+Le projet **Hypermedia** vise à extraire et généraliser les concepts essentiels du projet **prompt-imagine** pour construire une librairie Python portable de gestion d'hyperdocuments. Prompt-imagine a démontré l'efficacité d'une approche basée sur :
+- Collections arborescentes de médias
+- Métadonnées enrichies (prompts pondérés, tags, descripteurs)
+- Généalogie des médias (anciens/descendants)
+- Détection de doublons via checksums
+- Navigation et recherche avancées
 
-- **Centralisation** : Dépendance à des serveurs cloud propriétaires (Google Drive, Dropbox, iCloud)
-- **Fragmentation** : Médias dispersés entre multiples services sans cohérence sémantique
-- **Rigidité** : Structures d'organisation imposées (dossiers plats, albums chronologiques)
-- **Manque de contexte** : Métadonnées limitées aux tags et descriptions textuelles
-- **Linéarité** : Navigation séquentielle sans exploration des relations entre médias
-
-Le projet **prompt-imagine** a démontré la viabilité d'un système enrichi de gestion d'images générées par IA, avec métadonnées complexes (prompts pondérés), généalogie, et navigation non linéaire. **Hypermedia** généralise ces concepts pour créer une infrastructure universelle.
-
-### 1.2 Objectifs fonctionnels
-
-**Objectif principal** : Fournir une librairie Python portable permettant de créer, gérer et explorer des espaces d'hypermedia distribués, résilients et richement interconnectés.
-
-**Objectifs secondaires** :
-
-1. **Décentralisation partielle** : Permettre la synchronisation peer-to-peer sans dépendre d'un serveur central
-2. **Résilience** : Garantir l'accès aux médias même en cas de déconnexion ou de panne d'une instance
-3. **Richesse sémantique** : Associer à chaque média des métadonnées structurées, pondérées et relationnelles
-4. **Composition récursive** : Supporter des hypermedia composites (assemblages de médias et d'hypermedia)
-5. **Mise en scène dynamique** : Offrir des modes de visualisation adaptés au contexte et aux besoins
-6. **Extensibilité** : Faciliter l'ajout de nouveaux formats, protocoles et modes de présentation
-
-### 1.3 Périmètre fonctionnel
-
-**Dans le périmètre (version 1.0)** :
-
-- Stockage et indexation de médias locaux et distants
-- Métadonnées enrichies (définisseurs pondérés, tags, généalogie)
-- Synchronisation unidirectionnelle et bidirectionnelle
+Hypermedia pousse ces concepts plus loin en ajoutant :
+- Distribution et synchronisation multi-instances
+- Système d'URI unifié
 - Hypermedia composites récursifs
 - Langage de mise en scène HM-DSS
-- CLI et API REST
-- Interface web basique
+- Résilience aux déconnexions
 
-**Hors périmètre (versions futures)** :
+### 1.2 Périmètre
 
-- Édition collaborative temps réel
-- Auto-tagging par IA
-- Architecture P2P complète (libp2p, IPFS)
-- Applications mobiles natives
-- Chiffrement end-to-end
+**Dans le périmètre** :
+- Gestion de médias numériques (images, vidéos, audio, texte)
+- Stockage local et distribué
+- Métadonnées enrichies et navigation sémantique
+- Synchronisation entre instances
+- Mise en scène et présentation
+- Migration depuis prompt-imagine
+
+**Hors périmètre** (v1.0) :
+- Édition de médias (pas de Photoshop-like)
+- Intelligence artificielle (classification, reconnaissance) → v1.1+
+- Collaboration temps réel (multi-utilisateurs simultanés) → v1.2+
+- Intégration clouds tiers (S3, GCS) → v1.3+
+
+### 1.3 Objectifs Fonctionnels
+
+1. **Centraliser et organiser** : Collections arborescentes avec liens symboliques
+2. **Enrichir et décrire** : Métadonnées multiples (descripteurs pondérés, tags, relations)
+3. **Rechercher et naviguer** : Recherche full-text, filtres, parcours de graphe
+4. **Distribuer et synchroniser** : Multi-instances avec résilience
+5. **Composer et mettre en scène** : Hypermedia composites + langage HM-DSS
+6. **Migrer facilement** : Import automatique depuis prompt-imagine
 
 ---
 
-## 2. Acteurs et rôles
+## 2. Acteurs du Système
 
-### 2.1 Acteurs humains
+### 2.1 Utilisateur Final
 
-#### Créateur de contenu
-**Description** : Utilisateur générant ou important des médias dans le système.
-
-**Besoins** :
-- Importer des médias depuis disque, URL ou API
-- Enrichir les médias avec métadonnées (titre, description, tags, définisseurs)
-- Organiser en collections thématiques
-- Créer des relations entre médias (ancêtres, descendants, variantes)
-
-**Capacités** :
-- Uploader des fichiers individuels ou en batch
-- Éditer métadonnées individuellement ou en groupe
-- Créer des hypermedia composites
-- Définir des scènes de présentation
-
-#### Explorateur
-**Description** : Utilisateur naviguant dans les espaces d'hypermedia existants.
+**Rôle** : Consulter et naviguer dans les collections
 
 **Besoins** :
-- Rechercher des médias par texte, tags, métadonnées
-- Naviguer de manière non linéaire (liens, généalogie, similarité)
-- Filtrer et trier selon divers critères
-- Visualiser dans différents modes (galerie, timeline, graphe)
+- Visualiser des galeries de médias
+- Rechercher par métadonnées (tags, mots-clés, dates)
+- Naviguer dans le graphe relationnel (anciens, descendants)
+- Explorer différentes scènes (grille, timeline, graphe)
+- Consulter en mode déconnecté
 
-**Capacités** :
-- Accéder aux médias locaux et distants (lecture seule)
-- Suivre les liens entre médias
-- Exporter des sélections
-- Créer des vues personnalisées (scènes)
+### 2.2 Créateur de Contenu
 
-#### Administrateur de drive
-**Description** : Utilisateur gérant une instance HM-Drive.
+**Rôle** : Importer, organiser et enrichir les médias
 
 **Besoins** :
+- Créer des collections et sous-collections
+- Importer des médias (upload, import batch)
+- Ajouter des métadonnées (descripteurs, tags, relations)
+- Composer des hypermedia (assemblages)
+- Définir des scènes personnalisées (HM-DSS)
+- Détecter et fusionner les doublons
+
+### 2.3 Administrateur d'Instance
+
+**Rôle** : Configurer et maintenir une instance HM-Drive
+
+**Besoins** :
+- Initialiser une instance HM-Drive
 - Configurer les abonnements (instances distantes)
-- Monitorer la synchronisation
-- Gérer le cache et l'espace disque
-- Sécuriser l'accès (authentification, autorisations)
+- Surveiller la synchronisation
+- Gérer le cache local
+- Effectuer la maintenance (vérification d'intégrité, réparations)
+- Consulter les logs
 
-**Capacités** :
-- Initialiser un nouveau drive
-- Ajouter/retirer des abonnements
-- Configurer les politiques de cache
-- Consulter les logs et statistiques
+### 2.4 Système HM-Drive
 
-#### Développeur
-**Description** : Développeur intégrant Hypermedia dans une application tierce.
-
-**Besoins** :
-- API stable et documentée
-- Extensibilité (plugins, formats custom)
-- Exemples et tutoriels
-
-**Capacités** :
-- Utiliser l'API Python
-- Créer des formats de médias custom
-- Développer des renderers HM-DSS
-- Contribuer au projet open-source
-
-### 2.2 Acteurs systèmes
-
-#### Instance HM-Drive
-**Description** : Processus Python gérant un espace de stockage local et des abonnements.
+**Rôle** : Gestion automatique et résilience
 
 **Responsabilités** :
-- Gérer le dossier principal et les collections
-- Synchroniser avec les instances abonnées
-- Maintenir le cache local
-- Résoudre les URI
-- Exposer l'API REST
-
-#### Moteur de synchronisation
-**Description** : Composant asynchrone gérant les transferts entre instances.
-
-**Responsabilités** :
-- Détecter les changements (nouveaux médias, modifications, suppressions)
-- Transférer les fichiers et métadonnées
-- Résoudre les conflits
-- Gérer la file d'attente de synchronisation
-
-#### Moteur de rendu HM-Scene
-**Description** : Composant transformant une scène HM-DSS en représentation visuelle.
-
-**Responsabilités** :
-- Parser les feuilles HM-DSS
-- Sélectionner les médias selon les règles
-- Appliquer les styles et layouts
-- Générer le rendu (HTML, terminal, export statique)
+- Calcul automatique de checksums
+- Génération de thumbnails
+- Détection de doublons
+- Synchronisation en arrière-plan
+- Gestion du cache (LRU)
+- Réconciliation de conflits
+- Récupération après déconnexion
 
 ---
 
-## 3. Exigences fonctionnelles
+## 3. Cas d'Usage Principaux
 
-### 3.1 Gestion du HM-Drive
+### UC-01 : Créer une Collection
 
-#### REQ-DRIVE-001 : Initialisation d'un drive
-**Priorité** : Critique  
-**Acteur** : Administrateur de drive
-
-**Description** : Le système doit permettre l'initialisation d'un nouveau HM-Drive avec configuration minimale.
-
-**Critères d'acceptation** :
-- Création d'un dossier principal avec structure prédéfinie
-- Génération d'un identifiant unique (UUID)
-- Création de la base de métadonnées SQLite
-- Fichier de configuration `.hm-config.yaml`
-
-**Scénario nominal** :
-```python
-from hypermedia import HMDrive
-
-drive = HMDrive.init("/path/to/hm-drive", name="Mon Drive")
-print(drive.id)  # UUID généré
-```
-
----
-
-#### REQ-DRIVE-002 : Gestion des collections
-**Priorité** : Critique  
 **Acteur** : Créateur de contenu
 
-**Description** : Le système doit permettre la création, édition et suppression de collections.
+**Description** : Créer une nouvelle collection dans l'arborescence HM-Drive
 
-**Critères d'acceptation** :
-- Création de collections avec nom unique
-- Organisation arborescente (collections/sous-collections)
-- Métadonnées de collection (description, icône, couleur)
-- Suppression sécurisée (avec confirmation si non vide)
+**Préconditions** :
+- Instance HM-Drive initialisée
+- Utilisateur authentifié (si multi-utilisateurs)
 
-**Scénario nominal** :
-```python
-collection = drive.create_collection("Photos/Voyages/Japon")
-collection.set_metadata(description="Photos du voyage au Japon 2024")
-collection.set_icon("🗾")
-```
+**Flux nominal** :
+1. L'utilisateur spécifie le nom de la collection
+2. L'utilisateur choisit la collection parente (ou racine)
+3. L'utilisateur ajoute des métadonnées (description, tags)
+4. Le système crée le dossier physique
+5. Le système enregistre l'entrée en base de données
+6. Le système retourne l'URI de la collection
+
+**Postconditions** :
+- Collection accessible via URI `hm://local/[nom_collection]`
+- Dossier physique créé dans `instance_root/collections/`
+
+**Variantes** :
+- Collection imbriquée (sous-collection)
+- Lien symbolique vers collection existante
 
 ---
 
-#### REQ-DRIVE-003 : Ajout de médias
-**Priorité** : Critique  
+### UC-02 : Importer des Médias
+
 **Acteur** : Créateur de contenu
 
-**Description** : Le système doit permettre l'ajout de médias depuis diverses sources.
+**Description** : Ajouter des fichiers média à une collection
 
-**Critères d'acceptation** :
-- Support des chemins locaux
-- Support des URLs (téléchargement)
-- Calcul automatique du checksum BLAKE2b
-- Détection du format (MIME type)
-- Génération de thumbnails pour images/vidéos
-- Métadonnées physiques automatiques (taille, dimensions, durée)
+**Préconditions** :
+- Collection cible existe
+- Fichiers média valides
 
-**Scénario nominal** :
-```python
-media = collection.add_media(
-    "/path/to/image.jpg",
-    title="Temple Kinkaku-ji",
-    tags=["temple", "kyoto", "architecture"]
-)
-print(media.uri)  # hm://drive-uuid/Photos/Voyages/Japon/image.jpg
-```
+**Flux nominal** :
+1. L'utilisateur sélectionne la collection cible
+2. L'utilisateur sélectionne un ou plusieurs fichiers
+3. Pour chaque fichier :
+   a. Le système calcule le checksum BLAKE2b
+   b. Le système vérifie si un doublon existe
+   c. Si doublon détecté : proposition de lier au lieu de dupliquer
+   d. Le système copie le fichier dans la collection
+   e. Le système extrait les métadonnées physiques (dimensions, durée, etc.)
+   f. Le système génère les thumbnails (3 résolutions)
+   g. Le système enregistre en base de données
+4. Le système retourne la liste des médias importés
 
----
+**Postconditions** :
+- Médias accessibles via URI
+- Thumbnails disponibles
+- Checksum calculé et indexé
 
-#### REQ-DRIVE-004 : Système d'URI unifiés
-**Priorité** : Critique  
-**Acteur** : Tous
+**Variantes** :
+- Import batch (dossier complet)
+- Import avec métadonnées associées (CSV)
+- Import depuis URL distante
 
-**Description** : Le système doit fournir un système d'URI permettant d'adresser tout média du HM-Drive distribué.
-
-**Critères d'acceptation** :
-- Format : `hm://[instance-id]/[collection]/[path]`
-- Résolution locale et distante
-- URI relatifs au sein d'une instance : `hm:///collection/path`
-- Validation et normalisation des URI
-
-**Exemples** :
-- Local : `hm:///Photos/image.jpg`
-- Distant : `hm://a1b2c3d4/Photos/image.jpg`
-- Composite : `hm://a1b2c3d4/Hypermedia/gallery.hm`
+**Cas d'erreur** :
+- Format non supporté : rejet avec message explicite
+- Fichier corrompu : tentative de récupération, sinon rejet
+- Espace disque insuffisant : arrêt et nettoyage partiel
 
 ---
 
-### 3.2 Métadonnées et descripteurs
+### UC-03 : Enrichir les Métadonnées
 
-#### REQ-META-001 : Métadonnées physiques
-**Priorité** : Critique  
-**Acteur** : Système
-
-**Description** : Le système doit calculer et stocker automatiquement les métadonnées physiques.
-
-**Métadonnées obligatoires** :
-- Checksum BLAKE2b (unicité, détection de doublons)
-- Taille fichier (bytes)
-- Format / MIME type
-- Timestamps (création, modification, ajout au drive)
-
-**Métadonnées conditionnelles** :
-- **Images** : Dimensions (largeur, hauteur), résolution (DPI), profil couleur
-- **Vidéos** : Durée, codec, résolution, framerate, bitrate
-- **Audio** : Durée, codec, bitrate, sample rate, canaux
-- **Texte** : Encodage, nombre de lignes/caractères
-
----
-
-#### REQ-META-002 : Métadonnées sémantiques
-**Priorité** : Élevée  
 **Acteur** : Créateur de contenu
 
-**Description** : Le système doit permettre l'ajout de métadonnées sémantiques riches.
+**Description** : Ajouter ou modifier les métadonnées d'un média
 
-**Champs standard** :
-- **Titre** (chaîne, multilingue optionnel)
-- **Description** (texte long, markdown)
-- **Auteur** (nom ou URI)
-- **Licence** (SPDX identifier)
-- **Langue** (code ISO 639)
-- **Date de création originale** (ISO 8601)
+**Flux nominal** :
+1. L'utilisateur sélectionne un média
+2. L'utilisateur choisit le type de métadonnées à enrichir :
+   - **Descripteurs textuels** : titre, description
+   - **Définisseurs pondérés** : texte + poids + catégorie
+   - **Tags** : sélection multiple avec autocomplétion
+   - **Relations** : parent, enfant, similaire, dérivé
+3. L'utilisateur saisit les métadonnées
+4. Le système valide le format
+5. Le système enregistre en base de données
+6. Le système met à jour les index (full-text, tags)
 
-**Champs personnalisés** :
-- Schéma extensible (JSON Schema)
-- Typage des valeurs (string, number, date, URI, enum)
-
----
-
-#### REQ-META-003 : Système de tags
-**Priorité** : Élevée  
-**Acteur** : Créateur de contenu, Explorateur
-
-**Description** : Le système doit fournir un système de tags flexible.
-
-**Critères d'acceptation** :
-- Tags textuels (chaînes, insensibles à la casse)
-- Tags multiples par média
-- Autocomplétion basée sur tags existants
-- Recherche par tags (union, intersection)
-- Comptage des occurrences
-- Tags hiérarchiques optionnels (ex: `lieu/pays/ville`)
-
----
-
-#### REQ-META-004 : Définisseurs pondérés
-**Priorité** : Élevée  
-**Acteur** : Créateur de contenu
-
-**Description** : Le système doit supporter des "définisseurs" (inspirés des prompts IA) : fragments textuels pondérés décrivant le média.
+**Cas spécifique : Définisseurs pondérés** (hérité de prompt-imagine)
 
 **Format** :
 ```
-weight: 2.5 "temple doré, architecture japonaise"
-weight: 1.0 "ciel bleu, reflets dans l'eau"
-weight: -0.5 "foule, touristes"
+type: prompt | style | quality
+text: "Description textuelle"
+weight: 0.0 - 10.0
+category: subject | artistic | technical | ...
 ```
 
-**Critères d'acceptation** :
-- Parsing des définisseurs avec poids
-- Poids positifs (caractéristiques présentes) et négatifs (absentes)
-- Indexation full-text pour recherche
-- Génération de wordclouds pondérés
-- Export vers formats standards (JSON, YAML)
+**Exemple** :
+```yaml
+- type: prompt
+  text: "Serene mountain landscape at sunset"
+  weight: 2.5
+  category: subject
+  
+- type: style
+  text: "Impressionist painting, vibrant colors"
+  weight: 1.8
+  category: artistic
+```
 
 ---
 
-#### REQ-META-005 : Relations généalogiques
-**Priorité** : Moyenne  
-**Acteur** : Créateur de contenu, Explorateur
+### UC-04 : Rechercher des Médias
 
-**Description** : Le système doit permettre de définir des relations de filiation entre médias.
+**Acteur** : Utilisateur final / Créateur
+
+**Description** : Rechercher des médias selon différents critères
+
+**Modes de recherche** :
+
+**1. Recherche full-text**
+- Recherche dans titre, description, définisseurs
+- Support opérateurs booléens (AND, OR, NOT)
+- Recherche par phrase exacte (guillemets)
+
+**2. Recherche par filtres**
+- Collection(s)
+- Tags (OU / ET)
+- Plage de dates
+- Type de média (image, vidéo, audio)
+- Format (JPEG, PNG, MP4, etc.)
+- Dimensions (min/max)
+- Poids du fichier
+
+**3. Recherche par checksum**
+- Identification exacte d'un média
+- Détection de doublons
+
+**4. Recherche relationnelle**
+- Anciens d'un média
+- Descendants d'un média
+- Médias similaires
+- Médias dans le même graphe
+
+**Flux nominal** :
+1. L'utilisateur saisit la requête (texte ou filtres)
+2. Le système exécute la recherche (index full-text + SQL)
+3. Le système retourne les résultats paginés
+4. L'utilisateur peut affiner (filtres additionnels)
+5. L'utilisateur peut trier (pertinence, date, nom)
+
+**Performance attendue** :
+- Recherche sur 100k médias : < 100ms
+- Affichage des 50 premiers résultats : < 500ms
+
+---
+
+### UC-05 : Naviguer dans une Collection
+
+**Acteur** : Utilisateur final
+
+**Description** : Parcourir les médias d'une collection selon différents modes de vue
+
+**Modes de vue** :
+
+**1. Grille (Grid)**
+- Vignettes de taille uniforme
+- Colonnes adaptatives
+- Pagination ou infinite scroll
+
+**2. Liste (List)**
+- Affichage linéaire avec métadonnées visibles
+- Tri multi-colonnes
+
+**3. Timeline**
+- Organisation chronologique
+- Regroupement par période (jour, mois, année)
+
+**4. Graphe**
+- Visualisation des relations entre médias
+- Force-directed layout
+- Zoom et pan
+
+**5. Mosaïque (Masonry)**
+- Disposition adaptative (hauteurs variables)
+- Optimisation espace
+
+**Interactions** :
+- Clic : ouverture lightbox plein écran
+- Hover : affichage tooltip avec métadonnées
+- Drag : réorganisation manuelle (si mode édition)
+- Clavier : navigation (flèches, PageUp/Down)
+
+---
+
+### UC-06 : Créer un Hypermedia Composite
+
+**Acteur** : Créateur de contenu
+
+**Description** : Assembler plusieurs médias en un hypermedia composite
+
+**Préconditions** :
+- Les médias composants existent dans le HM-Drive
+
+**Flux nominal** :
+1. L'utilisateur crée un nouveau composite
+2. L'utilisateur ajoute des composants (via URI) :
+   - Médias simples
+   - Autres composites (récursivité)
+3. L'utilisateur définit le layout :
+   - Grille : positions (x, y)
+   - Séquentiel : ordre de lecture
+   - Temporel : durées et transitions
+4. L'utilisateur ajoute des métadonnées au composite
+5. Le système valide le graphe (détection de cycles)
+6. Le système enregistre le fichier `.hm` (YAML)
+7. Le système génère un thumbnail composite
+
+**Format `.hm`** (YAML) :
+```yaml
+type: composite
+version: 1.0
+layout: grid
+metadata:
+  title: "My Composite"
+  tags: [composite, gallery]
+components:
+  - uri: hm://local/portraits/img001
+    position: [0, 0]
+    duration: 3s
+  - uri: hm://local/landscapes/img002
+    position: [1, 0]
+  - uri: hm://local/composites/nested_comp
+    position: [0, 1]
+    scale: 0.5
+```
+
+**Validation** :
+- Détection de cycles (composite référençant récursivement lui-même)
+- Vérification existence des URI
+- Limite de profondeur (ex: 10 niveaux max)
+
+---
+
+### UC-07 : Configurer une Instance HM-Drive
+
+**Acteur** : Administrateur
+
+**Description** : Initialiser et configurer une instance HM-Drive
+
+**Flux nominal** :
+1. L'administrateur exécute `hm init /path/to/instance`
+2. Le système crée la structure de dossiers :
+   ```
+   /path/to/instance/
+   ├── config.yaml
+   ├── database.db
+   ├── cache/
+   ├── collections/
+   └── subscriptions/
+   ```
+3. Le système initialise la base de données (schéma SQL)
+4. Le système génère un fichier de config par défaut :
+   ```yaml
+   instance:
+     name: "my-instance"
+     uri: "hm://local"
+   
+   cache:
+     max_size_gb: 10
+     eviction_policy: lru
+   
+   sync:
+     auto_sync: true
+     interval_minutes: 15
+   
+   security:
+     tls_enabled: true
+     auth_required: false
+   ```
+5. L'administrateur édite la configuration
+6. L'administrateur démarre l'instance : `hm start`
+
+---
+
+### UC-08 : S'abonner à une Instance Distante
+
+**Acteur** : Administrateur
+
+**Description** : Configurer un abonnement à une instance distante
+
+**Modes d'abonnement** :
+- **Pull** : récupération unidirectionnelle
+- **Push** : envoi unidirectionnel
+- **Sync** : synchronisation bidirectionnelle
+
+**Flux nominal** :
+1. L'administrateur exécute :
+   ```bash
+   hm subscribe \
+     --remote hm://remote-server.example.com \
+     --collections "projects/2024,assets/shared" \
+     --mode sync \
+     --schedule "*/15 * * * *"
+   ```
+2. Le système teste la connexion à l'instance distante
+3. Le système vérifie l'authentification (si requise)
+4. Le système enregistre l'abonnement en base
+5. Le système effectue une première synchronisation initiale
+6. Le système programme les synchronisations futures (cron)
+
+**Postconditions** :
+- Abonnement actif
+- Collections distantes accessibles localement (cache)
+- Synchronisation automatique selon le planning
+
+---
+
+### UC-09 : Synchroniser des Collections
+
+**Acteur** : Système HM-Drive (automatique)
+
+**Description** : Synchroniser les médias entre instances locale et distante
+
+**Flux nominal** :
+1. Le scheduler déclenche une synchronisation
+2. Le système vérifie la connectivité réseau
+3. Pour chaque abonnement actif :
+   
+   **Phase Discovery** :
+   a. Récupération liste des médias distants (checksums + timestamps)
+   b. Comparaison avec liste locale
+   c. Identification des différences (ajouts, modifications, suppressions)
+   
+   **Phase Transfer** :
+   d. Pour chaque différence :
+      - Calcul du delta minimal (rsync-like)
+      - Compression (zstd)
+      - Transfert (HTTP/2 ou gRPC)
+      - Vérification checksum
+   
+   **Phase Reconciliation** :
+   e. Application des changements en transaction atomique
+   f. Mise à jour des métadonnées locales
+   g. Régénération des index
+   h. Logs de synchronisation
+
+4. Le système met à jour le statut de l'abonnement
+
+**Gestion des conflits** :
+- Détection : même média modifié des 2 côtés
+- Stratégies :
+  - `last_write_wins` : horodatage le plus récent
+  - `manual` : notification à l'administrateur
+  - `version_both` : conservation des 2 versions
+  - `merge_metadata` : fusion intelligente
+
+**Mode déconnecté** :
+- Si réseau indisponible : ajout à la queue de synchronisation
+- Retry automatique au retour en ligne
+- Persistance de la queue (survit au redémarrage)
+
+---
+
+### UC-10 : Définir une Scène HM-Scene
+
+**Acteur** : Créateur de contenu
+
+**Description** : Créer une scène personnalisée avec le langage HM-DSS
+
+**Flux nominal** :
+1. L'utilisateur crée un fichier `.hmdss`
+2. L'utilisateur écrit la définition de scène (syntaxe CSS-like) :
+   ```css
+   @scene portfolio {
+       collection: "projects/2024";
+       layout: grid;
+       columns: 3;
+   }
+   
+   media {
+       width: 100%;
+       aspect-ratio: 1/1;
+   }
+   
+   media[tag~="featured"] {
+       grid-column: span 2;
+       border: 3px solid gold;
+   }
+   ```
+3. L'utilisateur enregistre la scène dans HM-Drive
+4. Le système parse le HM-DSS (validation syntaxique)
+5. Le système compile la scène (AST)
+6. L'utilisateur peut prévisualiser la scène
+7. L'utilisateur publie la scène
+
+**Postconditions** :
+- Scène accessible via interface web ou CLI
+- Rendu dynamique selon le support (desktop, mobile, projection)
+
+---
+
+### Autres Cas d'Usage (résumé)
+
+**UC-11 : Résoudre un URI**
+- Transformer `hm://instance/collection/media` en objet Media
+
+**UC-12 : Parcourir le Graphe Relationnel**
+- `get_ancestors()`, `get_descendants()`, `get_related()`
+
+**UC-13 : Détecter et Fusionner les Doublons**
+- Recherche par checksum, fusion intelligente des métadonnées
+
+**UC-14 : Générer des Thumbnails**
+- Multi-résolutions (128x128, 256x256, 512x512)
+
+**UC-15 : Exporter une Collection**
+- Formats : ZIP, tar.gz, JSON (métadonnées)
+
+**UC-16 : Migrer depuis prompt-imagine**
+- Import automatique des collections, métadonnées, généalogie
+
+**UC-17 : Vérifier l'Intégrité**
+- `hm check` : validation checksums, cohérence base/fichiers
+
+**UC-18 : Réparer les Incohérences**
+- Détection et correction fichiers orphelins, enregistrements sans fichier
+
+**UC-19 : Consulter les Statistiques**
+- Nombre de médias, taille totale, répartition par type/collection
+
+**UC-20 : Consulter les Logs**
+- Logs de synchronisation, erreurs, opérations
+
+---
+
+## 4. Exigences Fonctionnelles
+
+### EF-001 : Gestion des Collections
+
+Le système DOIT permettre la création de collections arborescentes sans limite de profondeur.
+
+**Critères d'acceptation** :
+- Création de collection racine
+- Création de sous-collection (imbrication)
+- Renommage de collection
+- Suppression de collection (avec ou sans contenu)
+- Déplacement de collection
+
+### EF-002 : Liens Symboliques Virtuels
+
+Le système DOIT supporter les liens symboliques entre collections (stockage en base, pas de vrais symlinks).
+
+**Types de liens** :
+- `alias` : raccourci vers collection distante
+- `shortcut` : accès rapide
+- `related` : relation sémantique
+
+### EF-003 : Import Multi-Formats
+
+Le système DOIT supporter les formats suivants :
+
+**Images** : JPEG, PNG, WebP, GIF, TIFF, BMP
+**Vidéos** : MP4, WebM, AVI, MOV, MKV
+**Audio** : MP3, WAV, FLAC, OGG
+**Texte** : TXT, MD, PDF
+**Hypermedia** : .hm (format composite)
+
+### EF-004 : Calcul de Checksums
+
+Le système DOIT calculer un checksum BLAKE2b (64 bytes) pour chaque média importé.
+
+**Objectifs** :
+- Détection de doublons (100% fiabilité)
+- Vérification d'intégrité
+- Identification unique
+
+### EF-005 : Métadonnées Enrichies
+
+Le système DOIT supporter 4 types de métadonnées :
+
+**1. Métadonnées physiques** (automatiques)
+- Taille fichier
+- Format (MIME type)
+- Dimensions (largeur, hauteur)
+- Durée (vidéo/audio)
+- Bitrate, framerate, codec
+
+**2. Descripteurs textuels** (manuels)
+- Titre
+- Description
+- Auteur
+- Licence
+
+**3. Tags** (manuels)
+- Tags multiples par média
+- Autocomplétion
+- Catégorisation (optionnelle)
+
+**4. Définisseurs pondérés** (manuels, hérité de prompt-imagine)
+- Texte descriptif
+- Poids (0.0 - 10.0)
+- Type (prompt, style, quality)
+- Catégorie (subject, artistic, technical)
+
+### EF-006 : Génération de Thumbnails
+
+Le système DOIT générer automatiquement 3 résolutions de thumbnails :
+- 128x128 (grille dense)
+- 256x256 (grille standard)
+- 512x512 (prévisualisation)
+
+**Options** :
+- Crop centré
+- Respect aspect ratio avec padding
+
+### EF-007 : Détection de Doublons
+
+Le système DOIT détecter automatiquement les doublons (même checksum) lors de l'import.
+
+**Actions possibles** :
+- Refuser l'import (déduplication stricte)
+- Lier au média existant (référence)
+- Importer quand même (collections multiples)
+
+### EF-008 : Fusion de Doublons
+
+Le système DOIT permettre la fusion manuelle ou automatique de doublons.
+
+**Fusion des métadonnées** :
+- Collections : union
+- Tags : union
+- Descripteurs : choix utilisateur ou concaténation
+- Titre : choix utilisateur
+
+### EF-009 : Graphe Relationnel
+
+Le système DOIT maintenir un graphe des relations entre médias.
 
 **Types de relations** :
-- **Ancêtre** : Média source (ex: photo originale → photo éditée)
-- **Descendant** : Média dérivé (ex: image → variations générées)
-- **Variante** : Média alternatif (ex: crop, format différent)
-- **Référence** : Lien sémantique libre
+- `parent` / `child` : généalogie (dérivation)
+- `similar` : similarité sémantique
+- `derived` : transformation (crop, filter, etc.)
+- `part_of` : composite (média → hypermedia)
+- `related` : relation générique
 
-**Critères d'acceptation** :
-- Graphe orienté acyclique (DAG) pour ancêtres/descendants
-- Visualisation de la généalogie
-- Navigation interactive (remonter aux ancêtres, explorer les descendants)
-- Export GraphML / DOT
+### EF-010 : Parcours de Graphe
 
----
+Le système DOIT fournir des API de parcours de graphe :
+- `get_ancestors(media_id, depth)` : ancêtres jusqu'à profondeur N
+- `get_descendants(media_id, depth)` : descendants
+- `get_related(media_id, relation_type)` : relations typées
+- `get_path(source_id, target_id)` : chemin le plus court
 
-### 3.3 Hypermedia composites
+### EF-011 : Recherche Full-Text
 
-#### REQ-COMP-001 : Format hypermedia
-**Priorité** : Élevée  
-**Acteur** : Créateur de contenu
-
-**Description** : Le système doit définir un format pour les hypermedia composites.
-
-**Format `.hm` (YAML)** :
-```yaml
-type: hypermedia
-version: 1.0
-metadata:
-  title: "Galerie Japon"
-  description: "Collection de photos du voyage"
-  tags: ["voyage", "japon", "2024"]
-
-components:
-  - uri: hm:///Photos/Voyages/Japon/temple1.jpg
-    position: 0
-    metadata:
-      caption: "Temple Kinkaku-ji"
-  
-  - uri: hm://remote-drive/Shared/music.mp3
-    position: 1
-    autoplay: true
-  
-  - uri: hm:///Hypermedia/sub-gallery.hm
-    position: 2
-    recursive: true
-
-layout:
-  type: grid
-  columns: 3
-  gap: 10px
-```
-
-**Critères d'acceptation** :
-- Validation du format (JSON Schema)
-- Références locales et distantes
-- Composition récursive (avec limite de profondeur)
-- Métadonnées au niveau composite et composant
-
----
-
-#### REQ-COMP-002 : Résolution de dépendances
-**Priorité** : Élevée  
-**Acteur** : Système
-
-**Description** : Le système doit résoudre automatiquement les dépendances d'un hypermedia composite.
-
-**Critères d'acceptation** :
-- Téléchargement des médias distants manquants
-- Mise en cache locale
-- Détection de cycles (références circulaires)
-- Gestion des dépendances manquantes (fallback, erreur explicite)
-
----
-
-### 3.4 Synchronisation
-
-#### REQ-SYNC-001 : Abonnements mono-directionnels
-**Priorité** : Élevée  
-**Acteur** : Administrateur de drive
-
-**Description** : Le système doit permettre l'abonnement à un drive distant en lecture seule.
-
-**Critères d'acceptation** :
-- Configuration d'abonnement (URL, credentials)
-- Synchronisation initiale (copie complète)
-- Synchronisation incrémentale (polling ou webhooks)
-- Gestion de la bande passante (throttling)
-
-**Scénario nominal** :
-```python
-subscription = drive.subscribe(
-    url="https://remote-drive.example.com",
-    collections=["Shared/Public"],
-    mode="readonly",
-    sync_interval="5m"
-)
-```
-
----
-
-#### REQ-SYNC-002 : Abonnements bidirectionnels
-**Priorité** : Moyenne  
-**Acteur** : Administrateur de drive
-
-**Description** : Le système doit permettre la synchronisation bidirectionnelle entre deux drives.
-
-**Critères d'acceptation** :
-- Propagation des ajouts, modifications, suppressions
-- Résolution de conflits (stratégies : dernier gagne, fusion manuelle)
-- Transactions atomiques (rollback en cas d'échec)
-- Logs de synchronisation (audit trail)
-
----
-
-#### REQ-SYNC-003 : Cache local
-**Priorité** : Élevée  
-**Acteur** : Système
-
-**Description** : Le système doit maintenir un cache local des médias distants.
-
-**Critères d'acceptation** :
-- Politique d'éviction configurable (LRU, LFU, taille max, TTL)
-- Validation des checksums après téléchargement
-- Préchargement intelligent (based on access patterns)
-- Statistiques du cache (taux de hit, taille utilisée)
-
----
-
-#### REQ-SYNC-004 : Mode hors-ligne
-**Priorité** : Moyenne  
-**Acteur** : Explorateur
-
-**Description** : Le système doit fonctionner en mode hors-ligne avec le cache local.
-
-**Critères d'acceptation** :
-- Détection automatique de la déconnexion
-- Fallback sur cache pour médias distants
-- File d'attente des modifications locales (replay à la reconnexion)
-- Indicateur visuel du mode (online/offline/syncing)
-
----
-
-### 3.5 HM-Scene et navigation
-
-#### REQ-SCENE-001 : Définition de scènes
-**Priorité** : Élevée  
-**Acteur** : Créateur de contenu
-
-**Description** : Le système doit permettre la définition de scènes de présentation via HM-DSS.
-
-**Exemple HM-DSS** :
-```yaml
-scene:
-  name: "Galerie photos Japon"
-  target: "web"
-  
-selectors:
-  - match:
-      collection: "Photos/Voyages/Japon"
-      type: "image"
-    style:
-      layout: grid
-      columns: 4
-      thumbnail_size: 250px
-      hover_effect: zoom
-  
-  - match:
-      tags: ["temple"]
-    style:
-      border: 2px solid gold
-      priority: high
-```
-
-**Critères d'acceptation** :
-- Sélecteurs basés sur métadonnées (collection, type, tags, date)
-- Règles de style (layout, dimensions, animations)
-- Composition de règles (héritage, cascade comme CSS)
-- Validation du fichier HM-DSS
-
----
-
-#### REQ-SCENE-002 : Rendu adaptatif
-**Priorité** : Moyenne  
-**Acteur** : Explorateur
-
-**Description** : Le système doit adapter le rendu selon le support de visualisation.
-
-**Supports cibles** :
-- **Web** : HTML/CSS responsive
-- **Terminal** : TUI avec rich/textual
-- **Export statique** : Galerie HTML autonome
-
-**Critères d'acceptation** :
-- Détection automatique du support
-- Templates de rendu par défaut
-- Surcharge possible via HM-DSS
-
----
-
-#### REQ-SCENE-003 : Navigation non linéaire
-**Priorité** : Élevée  
-**Acteur** : Explorateur
-
-**Description** : Le système doit permettre la navigation non linéaire entre médias.
-
-**Modes de navigation** :
-- **Liens explicites** : Suivre les relations (ancêtres, descendants, références)
-- **Liens implicites** : Médias similaires (même tags, même définisseurs)
-- **Filtres dynamiques** : Affiner la sélection (par tag, date, collection)
-- **Recherche full-text** : Dans métadonnées et définisseurs
-
-**Critères d'acceptation** :
-- Historique de navigation (back/forward)
-- Breadcrumbs (fil d'Ariane)
-- Minimap de la structure (optionnel)
-
----
-
-### 3.6 Recherche et filtrage
-
-#### REQ-SEARCH-001 : Recherche full-text
-**Priorité** : Élevée  
-**Acteur** : Explorateur
-
-**Description** : Le système doit fournir une recherche full-text performante.
-
-**Champs indexés** :
-- Titre, description
+Le système DOIT indexer et permettre la recherche full-text sur :
+- Titre
+- Description
+- Définisseurs pondérés
 - Tags
-- Définisseurs
-- Métadonnées personnalisées
 
-**Critères d'acceptation** :
-- Recherche insensible à la casse
-- Support des opérateurs booléens (AND, OR, NOT)
-- Recherche par proximité (within 5 words)
-- Classement par pertinence (TF-IDF ou BM25)
-- Résultats < 100ms pour 10k médias
+**Performance** : recherche sur 100k médias en < 100ms
+
+### EF-012 : Filtres de Recherche
+
+Le système DOIT supporter les filtres combinables :
+- Collection(s)
+- Tags (AND / OR)
+- Plage de dates
+- Type de média
+- Format
+- Dimensions (min/max)
+- Taille fichier (min/max)
+
+### EF-013 : URI Unifié
+
+Le système DOIT implanter un schéma d'URI `hm://` :
+
+**Format** : `hm://[instance]/[collection_path]/[media_id][#fragment]`
+
+**Exemples** :
+- `hm://local/portraits/abc123`
+- `hm://remote.example.com/shared/video001#t=30s`
+
+**Fragments** :
+- `#t=30s` : timestamp vidéo
+- `#xywh=100,200,300,400` : région image
+- `#component=2` : composant d'un hypermedia
+
+### EF-014 : Résolution d'URI
+
+Le système DOIT résoudre les URI vers des objets Media concrets.
+
+**Résolution locale** : accès direct au fichier
+**Résolution distante** : téléchargement en cache local
+
+### EF-015 : Architecture d'Instance
+
+Le système DOIT supporter plusieurs instances HM-Drive.
+
+**Types d'instances** :
+- Principale (primary) : dossier principal local
+- Secondaire (secondary) : abonnée à la principale
+- Pair (peer) : égalité de statut
+
+### EF-016 : Abonnements
+
+Le système DOIT permettre de s'abonner à des instances distantes.
+
+**Modes** :
+- **Pull** : récupération unidirectionnelle
+- **Push** : envoi unidirectionnel
+- **Sync** : synchronisation bidirectionnelle
+
+**Configuration** :
+- Collections sélectionnées
+- Planning (cron)
+- Filtres (tags, types)
+
+### EF-017 : Synchronisation Delta
+
+Le système DOIT implanter une synchronisation incrémentale (delta sync).
+
+**Algorithme** :
+1. Comparaison des checksums
+2. Identification des différences
+3. Transfert des deltas uniquement
+4. Compression (zstd)
+
+**Performance** : sync de 10GB en < 5min sur LAN 1Gbps
+
+### EF-018 : Mode Déconnecté
+
+Le système DOIT fonctionner en mode déconnecté.
+
+**Comportement** :
+- Queue locale des opérations en attente
+- Accès aux médias en cache
+- Synchronisation automatique au retour en ligne
+
+### EF-019 : Gestion des Conflits
+
+Le système DOIT détecter et résoudre les conflits de synchronisation.
+
+**Stratégies** :
+- `last_write_wins`
+- `manual`
+- `version_both`
+- `merge_metadata`
+
+### EF-020 : Hypermedia Composites
+
+Le système DOIT supporter les hypermedia composites récursifs.
+
+**Format** : fichier `.hm` (YAML)
+
+**Composants** :
+- Références à des médias (URI)
+- Références à des composites (récursivité)
+- Propriétés de layout (positions, tailles)
+
+### EF-021 : Validation DAG
+
+Le système DOIT valider que les composites forment un graphe acyclique dirigé (DAG).
+
+**Détection de cycles** : algorithme DFS avec marquage
+
+### EF-022 : Langage HM-DSS
+
+Le système DOIT implanter un langage de mise en scène HM-DSS (inspiré CSS).
+
+**Éléments** :
+- Sélecteurs de médias
+- Propriétés de layout
+- Propriétés visuelles
+- Pseudo-classes (`:hover`, `:first-child`)
+- Media queries (responsive)
+
+### EF-023 : Parser HM-DSS
+
+Le système DOIT parser et valider la syntaxe HM-DSS.
+
+**Sortie** : AST (Abstract Syntax Tree)
+
+### EF-024 : Moteur de Rendu
+
+Le système DOIT rendre les scènes HM-DSS vers différents backends :
+- HTML/CSS/JS (web)
+- Qt (desktop)
+- Terminal (TUI)
+
+### EF-025 : Templates de Scènes
+
+Le système DOIT fournir des templates de scènes prédéfinis :
+- Gallery (grille)
+- Timeline (chronologique)
+- Graph (relations)
+- Masonry (mosaïque)
+- Slideshow (diaporama)
+
+### EF-026 : Adaptation Multi-Support
+
+Le système DOIT adapter les scènes selon le support :
+- Desktop (large screen)
+- Mobile (tactile)
+- Tablet
+- Projection (ultra-wide)
+
+### EF-027 : Pagination Dynamique
+
+Le système DOIT paginer les collections volumineuses.
+
+**Modes** :
+- Pagination classique (numéros de pages)
+- Infinite scroll
+- Load more (bouton)
+
+**Performance** : affichage de 50 médias en < 500ms
+
+### EF-028 : Cache Local
+
+Le système DOIT maintenir un cache local des médias distants.
+
+**Politique** :
+- Taille maximale configurable (10GB par défaut)
+- Éviction LRU
+- Priorité aux thumbnails
+
+### EF-029 : Migration prompt-imagine
+
+Le système DOIT fournir un outil de migration depuis prompt-imagine.
+
+**Import** :
+- Collections
+- Médias
+- Métadonnées (prompts → définisseurs)
+- Généalogie
+- Tags
+- Checksums
+
+### EF-030 : Interface Web
+
+Le système DOIT fournir une interface web (Flask/FastAPI).
+
+**Pages** :
+- Accueil (liste collections)
+- Collection (galerie)
+- Média (détail + lightbox)
+- Recherche
+- Admin (config, sync, logs)
+
+### EF-031 : CLI
+
+Le système DOIT fournir une interface en ligne de commande.
+
+**Commandes** :
+- `hm init` : initialiser instance
+- `hm add` : ajouter média
+- `hm list` : lister médias
+- `hm search` : rechercher
+- `hm sync` : synchroniser
+- `hm check` : vérifier intégrité
+- `hm repair` : réparer incohérences
+
+### EF-032 : Logs Structurés
+
+Le système DOIT produire des logs structurés (JSON).
+
+**Niveaux** : DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+**Champs** : timestamp, level, component, message, context
+
+### EF-033 : Monitoring
+
+Le système DOIT exposer des métriques pour monitoring.
+
+**Métriques** :
+- Nombre de médias
+- Taille totale
+- Taux de cache hit
+- Dureé sync
+- Erreurs
+
+### EF-034 : Transactions Atomiques
+
+Le système DOIT utiliser des transactions atomiques pour toutes les opérations critiques.
+
+**Garantie** : rollback automatique en cas d'échec
+
+### EF-035 : Sécurité TLS
+
+Le système DOIT utiliser TLS 1.3 pour les communications réseau.
+
+### EF-036 : Authentification
+
+Le système DOIT supporter l'authentification pour les instances distantes.
+
+**Méthode** : JWT (JSON Web Tokens)
+
+### EF-037 : Validation de Chemins
+
+Le système DOIT valider tous les chemins de fichiers pour éviter les accès hors de `instance_root/`.
+
+**Sécurité** : interdiction `../`, chemins absolus non autorisés
+
+### EF-038 : Statistiques
+
+Le système DOIT fournir des statistiques sur les collections.
+
+**Statistiques** :
+- Nombre de médias par type
+- Taille totale par collection
+- Répartition par format
+- Top tags
+
+### EF-039 : Export
+
+Le système DOIT permettre l'export de collections.
+
+**Formats** :
+- ZIP (médias + métadonnées)
+- JSON (métadonnées uniquement)
+- CSV (tableau)
+
+### EF-040 : Documentation
+
+Le système DOIT fournir une documentation exhaustive.
+
+**Formats** :
+- API Reference (autodoc depuis docstrings)
+- User Guide (tutoriels)
+- Administrator Guide (déploiement)
+- HM-DSS Specification (langage)
 
 ---
 
-#### REQ-SEARCH-002 : Recherche par métadonnées
-**Priorité** : Moyenne  
-**Acteur** : Explorateur
+## 5. Exigences Non Fonctionnelles
 
-**Description** : Le système doit permettre la recherche par métadonnées structurées.
+### ENF-001 : Performance
 
-**Exemples de requêtes** :
-```python
-# Par tags (intersection)
-results = drive.search(tags=["temple", "kyoto"])
+**Import** :
+- 1000 images (10MB moyenne) : < 30s
 
-# Par date
-results = drive.search(date_range=("2024-01-01", "2024-12-31"))
+**Recherche** :
+- Full-text sur 100k médias : < 100ms
 
-# Par type
-results = drive.search(type="image", format="image/jpeg")
+**Synchronisation** :
+- 10GB sur LAN 1Gbps : < 5min
 
-# Par collection
-results = drive.search(collection="Photos/Voyages/*")
+**Rendu** :
+- Scène 100 médias : < 1s
+- Navigation 60fps sur grille 500+ éléments
 
-# Requête combinée
-results = drive.search(
-    tags=["temple"],
-    date_range=("2024-03-01", "2024-03-31"),
-    collection="Photos/Voyages/Japon"
-)
-```
+### ENF-002 : Portabilité
 
----
+**Plateformes** : Linux, macOS, Windows
 
-#### REQ-SEARCH-003 : Recherche par similarité
-**Priorité** : Basse  
-**Acteur** : Explorateur
+**Python** : ≥3.10
 
-**Description** : Le système doit permettre la recherche de médias similaires.
+**Dépendances** : minimales, pure Python ou wheels disponibles
 
-**Critères de similarité** :
-- Tags communs (Jaccard similarity)
-- Définisseurs proches (embeddings vectoriels optionnel)
-- Généalogie commune (même ancêtre)
+### ENF-003 : Scalabilité
 
-**Critères d'acceptation** :
-- Fonction `find_similar(media, limit=10)`
-- Classement par score de similarité
-- Seuil configurable
+**Volumes supportés** :
+- 100k médias par instance
+- 10 To de données
+- 1000 collections
 
----
+### ENF-004 : Fiabilité
 
-### 3.7 Interface utilisateur
+**Disponibilité** : 99.9% (mode local)
 
-#### REQ-UI-001 : Interface en ligne de commande (CLI)
-**Priorité** : Élevée  
-**Acteur** : Tous
+**Tolérance aux pannes** :
+- Résilience aux déconnexions réseau
+- Recovery automatique après crash
 
-**Description** : Le système doit fournir une CLI complète.
+### ENF-005 : Utilisabilité
 
-**Commandes principales** :
-```bash
-# Initialisation
-hm init /path/to/drive --name "Mon Drive"
+**API** : intuitive, bien documentée
 
-# Ajout de médias
-hm add /path/to/image.jpg --collection Photos --tags "voyage,japon"
+**Messages d'erreur** : explicites, actionables
 
-# Recherche
-hm search "temple" --collection Photos --tags kyoto
+**Interface web** : responsive, accessible (WCAG 2.1 AA)
 
-# Synchronisation
-hm sync add https://remote-drive.example.com --readonly
-hm sync run
+### ENF-006 : Maintenabilité
 
-# Visualisation
-hm show hm:///Photos/image.jpg
-hm browse Photos/Voyages
-```
+**Architecture** : modulaire, faible couplage
 
-**Critères d'acceptation** :
-- Aide contextuelle (`--help`)
-- Autocomplétion (bash, zsh, fish)
-- Output structuré (JSON, YAML, table)
-- Mode interactif (prompt)
+**Tests** : >90% couverture
+
+**Documentation** : à jour, exhaustive
+
+### ENF-007 : Sécurité
+
+**Chiffrement** : TLS 1.3 pour réseau
+
+**Validation** : tous les chemins, entrées utilisateur
+
+**Transactions** : atomiques avec rollback
 
 ---
 
-#### REQ-UI-002 : Interface web
-**Priorité** : Moyenne  
-**Acteur** : Créateur de contenu, Explorateur
+## 6. Modèle de Domaine
 
-**Description** : Le système doit fournir une interface web responsive.
+### Entités Principales
 
-**Pages principales** :
-- **Accueil** : Vue d'ensemble des collections
-- **Galerie** : Affichage des médias (grille, liste, timeline)
-- **Détail** : Vue détaillée d'un média (métadonnées, généalogie)
-- **Recherche** : Formulaire de recherche avancée
-- **Upload** : Formulaire d'ajout de médias
-- **Paramètres** : Configuration du drive, abonnements
+**Instance**
+- Identifiant unique
+- Nom
+- URI
+- Type (local, remote)
+- Configuration
 
-**Critères d'acceptation** :
-- Design responsive (mobile-first)
-- Lightbox pour images/vidéos
-- Lecteur audio/vidéo intégré
-- Édition inline des métadonnées
-- Glisser-déposer pour upload
+**Collection**
+- Identifiant
+- Nom
+- Chemin
+- Parent (collection parente)
+- Métadonnées
 
----
+**Media**
+- Identifiant
+- Checksum (BLAKE2b)
+- Nom de fichier
+- Format
+- Taille
+- Dimensions
+- Durée
+- Métadonnées physiques
+- Collections (many-to-many)
 
-#### REQ-UI-003 : API REST
-**Priorité** : Élevée  
-**Acteur** : Développeur
+**Descriptor** (définisseur pondéré)
+- Identifiant
+- Média (référence)
+- Type (prompt, style, quality)
+- Texte
+- Poids
+- Catégorie
 
-**Description** : Le système doit exposer une API REST complète.
+**Tag**
+- Identifiant
+- Nom
+- Couleur
+- Catégorie
 
-**Endpoints principaux** :
-```
-GET    /api/collections
-GET    /api/collections/{id}
-POST   /api/collections
-DELETE /api/collections/{id}
+**Relationship**
+- Source (média)
+- Cible (média)
+- Type (parent, child, similar, derived)
+- Force (0.0 - 1.0)
 
-GET    /api/media
-GET    /api/media/{id}
-POST   /api/media
-PUT    /api/media/{id}
-DELETE /api/media/{id}
+**Composite**
+- Identifiant
+- Média (référence)
+- Définition (YAML)
+- Layout
 
-GET    /api/media/{id}/thumbnail
-GET    /api/media/{id}/download
+**Scene**
+- Identifiant
+- Collection
+- Nom
+- Contenu HM-DSS
+- Configuration
 
-GET    /api/search?q={query}&tags={tags}
+**Subscription** (abonnement)
+- Instance locale
+- Instance distante
+- Collections
+- Mode (pull, push, sync)
+- Planning
+- Dernier sync
 
-GET    /api/sync/subscriptions
-POST   /api/sync/subscriptions
-POST   /api/sync/run
-```
+### Relations
 
-**Critères d'acceptation** :
-- Documentation OpenAPI/Swagger
-- Authentification (JWT, API keys)
-- Pagination (liens HATEOAS)
-- Gestion des erreurs (codes HTTP standards)
-- CORS configurable
-
----
-
-## 4. Exigences non fonctionnelles
-
-### 4.1 Performance
-
-- **REQ-PERF-001** : Recherche full-text < 100ms pour 10k médias
-- **REQ-PERF-002** : Synchronisation < 1s pour 100 médias (hors transfert réseau)
-- **REQ-PERF-003** : Génération de thumbnail < 500ms par image
-- **REQ-PERF-004** : Chargement interface web < 2s (first paint)
-
-### 4.2 Scalabilité
-
-- **REQ-SCAL-001** : Support de 100k+ médias par instance
-- **REQ-SCAL-002** : Support de 10+ abonnements simultanés
-- **REQ-SCAL-003** : Cache configurable jusqu'à 1TB
-
-### 4.3 Fiabilité
-
-- **REQ-FIAB-001** : Transactions atomiques pour toutes les opérations d'écriture
-- **REQ-FIAB-002** : Rollback automatique en cas d'échec de synchronisation
-- **REQ-FIAB-003** : Validation des checksums après chaque transfert
-- **REQ-FIAB-004** : Logs détaillés de toutes les opérations critiques
-
-### 4.4 Sécurité
-
-- **REQ-SECU-001** : HTTPS obligatoire pour synchronisation distante
-- **REQ-SECU-002** : Authentification robuste (JWT, expiration tokens)
-- **REQ-SECU-003** : Validation des chemins (pas d'accès hors du drive)
-- **REQ-SECU-004** : Protection CSRF pour interface web
-- **REQ-SECU-005** : Rate limiting sur API REST
-
-### 4.5 Portabilité
-
-- **REQ-PORT-001** : Python 3.10+ uniquement
-- **REQ-PORT-002** : Dépendances stdlib privilégiées
-- **REQ-PORT-003** : Compatibilité Linux, macOS, Windows
-- **REQ-PORT-004** : Installation via pip (PyPI)
-- **REQ-PORT-005** : Docker images officielles
-
-### 4.6 Maintenabilité
-
-- **REQ-MAIN-001** : Couverture de tests > 85%
-- **REQ-MAIN-002** : Documentation API complète (docstrings)
-- **REQ-MAIN-003** : Architecture modulaire (découplage composants)
-- **REQ-MAIN-004** : Versionnement sémantique (semver)
-- **REQ-MAIN-005** : Changelog à jour
-
-### 4.7 Utilisabilité
-
-- **REQ-UTIL-001** : Temps de prise en main < 1h pour utilisateur avancé
-- **REQ-UTIL-002** : Messages d'erreur explicites (pas de stacktraces brutes)
-- **REQ-UTIL-003** : Confirmations pour actions destructives
-- **REQ-UTIL-004** : Aide contextuelle (`--help`, tooltips)
+- Collection 1-N Media (via table intermédiaire many-to-many)
+- Media 1-N Descriptor
+- Media N-N Tag
+- Media N-N Relationship (graphe)
+- Media 1-1 Composite (optionnel)
+- Collection 1-N Scene
+- Instance 1-N Subscription
 
 ---
 
-## 5. Scénarios d'usage
+## 7. Scénarios Détaillés
 
-### 5.1 Scénario : Créer et peupler un drive
+### Scénario 1 : Migration d'une Collection prompt-imagine
 
-**Acteur** : Créateur de contenu  
-**Prérequis** : Python 3.10+ installé, hypermedia installé
+**Contexte** : Un utilisateur possède 500 images dans prompt-imagine, collection "Landscapes"
 
 **Étapes** :
+1. L'utilisateur initialise une instance Hypermedia :
+   ```bash
+   hm init /home/user/hypermedia
+   ```
 
-1. Initialiser un drive
-```bash
-hm init ~/my-hypermedia-drive --name "Mes Créations"
-```
+2. L'utilisateur lance la migration :
+   ```bash
+   hm-migrate \
+     --source /home/user/prompt-imagine \
+     --target /home/user/hypermedia \
+     --collection Landscapes \
+     --verify-checksums
+   ```
 
-2. Créer une collection
-```bash
-hm collection create "Photos/Voyages/Japon"
-```
+3. Le système :
+   - Lit la base SQLite de prompt-imagine
+   - Extrait les 500 enregistrements de "Landscapes"
+   - Pour chaque média :
+     - Vérifie le checksum existant
+     - Copie le fichier dans HM-Drive
+     - Convertit les prompts en définisseurs pondérés
+     - Importe les tags
+     - Reconstruit la généalogie (relations parent-enfant)
+     - Génère les thumbnails
 
-3. Ajouter des médias
-```bash
-hm add ~/Downloads/temple.jpg \
-  --collection "Photos/Voyages/Japon" \
-  --title "Temple Kinkaku-ji" \
-  --tags "temple,kyoto,architecture" \
-  --definers 'weight: 2.5 "temple doré, reflets dans l'eau"'
-```
+4. Résultat :
+   - Collection accessible via `hm://local/Landscapes`
+   - 500 médias importés
+   - Métadonnées préservées
+   - Généalogie conservée
 
-4. Vérifier l'ajout
-```bash
-hm search "temple" --collection "Photos/Voyages/Japon"
-```
+### Scénario 2 : Synchronisation Multi-Instances avec Conflit
 
-**Résultat attendu** : Le média est ajouté, indexé et recherchable.
-
----
-
-### 5.2 Scénario : Synchroniser avec un drive distant
-
-**Acteur** : Administrateur de drive  
-**Prérequis** : Drive local initialisé, drive distant accessible
-
-**Étapes** :
-
-1. Ajouter un abonnement
-```bash
-hm sync add https://remote-drive.example.com \
-  --collections "Shared/Public" \
-  --mode readonly \
-  --interval 5m
-```
-
-2. Lancer la synchronisation initiale
-```bash
-hm sync run --subscription remote-drive.example.com
-```
-
-3. Monitorer la synchronisation
-```bash
-hm sync status
-```
-
-4. Accéder aux médias distants
-```bash
-hm browse "Shared/Public"
-```
-
-**Résultat attendu** : Les médias distants sont copiés dans le cache local et accessibles.
-
----
-
-### 5.3 Scénario : Créer un hypermedia composite
-
-**Acteur** : Créateur de contenu  
-**Prérequis** : Médias déjà présents dans le drive
+**Contexte** : Instance A (studio) et Instance B (laptop) synchronisées
 
 **Étapes** :
+1. Sur A : modification du titre de `image001.jpg` → "Sunset at Beach"
+2. Sur B (déconnecté) : modification du titre de `image001.jpg` → "Golden Hour"
+3. B se reconnecte au réseau
+4. Synchronisation automatique se déclenche
+5. Le système détecte un conflit (même média, 2 modifications)
+6. Stratégie configurée : `manual`
+7. Notification à l'administrateur :
+   ```
+   Conflit détecté sur hm://local/landscapes/image001
+   
+   Version A (studio) :
+     Titre: "Sunset at Beach"
+     Modifié: 2026-02-10 14:30:00
+   
+   Version B (laptop) :
+     Titre: "Golden Hour"
+     Modifié: 2026-02-10 14:32:00
+   
+   Actions possibles :
+   1. Conserver A
+   2. Conserver B
+   3. Fusionner (concaténation)
+   4. Conserver les 2 versions
+   ```
+8. L'administrateur choisit : Fusionner → "Sunset at Beach - Golden Hour"
+9. Le système applique la résolution sur A et B
 
-1. Créer un fichier `.hm`
-```bash
-hm composite create "Galerie Japon" \
-  --output "Hypermedia/galerie-japon.hm" \
-  --collection "Photos/Voyages/Japon" \
-  --layout grid \
-  --columns 4
-```
+### Scénario 3 : Création d'un Hypermedia Composite Multicouche
 
-2. Ajouter un média audio
-```bash
-hm composite add "Hypermedia/galerie-japon.hm" \
-  --uri "hm:///Music/ambient-japon.mp3" \
-  --autoplay
-```
-
-3. Prévisualiser
-```bash
-hm show "Hypermedia/galerie-japon.hm"
-```
-
-**Résultat attendu** : Un hypermedia composite est créé, affichant les photos avec musique d'ambiance.
-
----
-
-### 5.4 Scénario : Définir et appliquer une scène HM-DSS
-
-**Acteur** : Créateur de contenu  
-**Prérequis** : Collection de médias existante
-
-**Étapes** :
-
-1. Créer une feuille HM-DSS
-```yaml
-# scenes/galerie-japon.hm-dss
-scene:
-  name: "Galerie Japon"
-  target: web
-
-selectors:
-  - match:
-      collection: "Photos/Voyages/Japon"
-      type: image
-    style:
-      layout: masonry
-      thumbnail_size: auto
-      hover_effect: zoom
-      border_radius: 8px
-```
-
-2. Appliquer la scène
-```bash
-hm scene apply scenes/galerie-japon.hm-dss \
-  --output gallery.html
-```
-
-3. Ouvrir le rendu
-```bash
-open gallery.html
-```
-
-**Résultat attendu** : Une galerie HTML responsive est générée avec le style défini.
-
----
-
-### 5.5 Scénario : Explorer la généalogie d'un média
-
-**Acteur** : Explorateur  
-**Prérequis** : Médias avec relations généalogiques
+**Contexte** : Créer un portfolio composite avec 3 niveaux
 
 **Étapes** :
+1. Création de composites de base (niveau 1) :
+   ```yaml
+   # portraits_2024.hm
+   type: composite
+   layout: grid
+   components:
+     - uri: hm://local/portraits/portrait001
+     - uri: hm://local/portraits/portrait002
+     - uri: hm://local/portraits/portrait003
+   ```
 
-1. Afficher les détails d'un média
-```bash
-hm show "hm:///Photos/edited-image.jpg"
+2. Création de composites intermédiaires (niveau 2) :
+   ```yaml
+   # best_of_2024.hm
+   type: composite
+   layout: grid
+   components:
+     - uri: hm://local/composites/portraits_2024
+     - uri: hm://local/composites/landscapes_2024
+     - uri: hm://local/composites/architecture_2024
+   ```
+
+3. Création du composite final (niveau 3) :
+   ```yaml
+   # portfolio_master.hm
+   type: composite
+   layout: sequential
+   components:
+     - uri: hm://local/composites/best_of_2024
+       duration: 30s
+     - uri: hm://local/videos/showreel.mp4
+       duration: 60s
+     - uri: hm://local/composites/contact_info
+       duration: 10s
+   ```
+
+4. Validation DAG :
+   - Le système parcourt récursivement les composants
+   - Vérifie l'absence de cycles
+   - Profondeur = 3 (< limite de 10)
+   - Validation OK
+
+5. Génération du thumbnail composite :
+   - Mosaïque des thumbnails des composants de niveau 1
+
+### Scénario 4 : Navigation dans une Scène HM-DSS
+
+**Contexte** : Utilisateur navigue dans une collection "Wildlife"
+
+**Scène définie** :
+```css
+@scene wildlife {
+    collection: "nature/wildlife";
+    layout: masonry;
+}
+
+media[tag~="endangered"] {
+    border: 3px solid red;
+    z-index: 10;
+}
+
+media[type="video"] {
+    play-on-hover: true;
+    border-radius: 8px;
+}
+
+media:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
 ```
 
-2. Remonter aux ancêtres
-```bash
-hm genealogy ancestors "hm:///Photos/edited-image.jpg"
-```
+**Comportement** :
+1. L'utilisateur accède à `/scene/wildlife`
+2. Le moteur de rendu parse le HM-DSS
+3. Le moteur résout les médias de "nature/wildlife" (150 médias)
+4. Le moteur applique les sélecteurs :
+   - Médias avec tag "endangered" : bordure rouge, z-index 10
+   - Vidéos : play-on-hover, border-radius
+5. Le moteur calcule le layout masonry (colonnes adaptatives)
+6. Le moteur rend en HTML/CSS/JS
+7. L'utilisateur survole une vidéo :
+   - La vidéo démarre (muted)
+   - Transform scale(1.1) + box-shadow
+8. L'utilisateur clique :
+   - Ouverture lightbox plein écran
+   - Lecture avec son
 
-3. Explorer les descendants
-```bash
-hm genealogy descendants "hm:///Photos/original.jpg"
-```
+### Scénario 5 : Récupération après Déconnexion
 
-4. Visualiser le graphe complet
-```bash
-hm genealogy graph "hm:///Photos/original.jpg" --output graph.png
-```
+**Contexte** : Utilisateur sur laptop, déconnexion réseau pendant 2h
 
-**Résultat attendu** : L'utilisateur peut explorer l'arbre généalogique complet.
+**Étapes** :
+1. Utilisateur ajoute 10 nouvelles photos à "Travel/Japan" (mode déconnecté)
+2. Le système :
+   - Enregistre localement les médias
+   - Calcule les checksums
+   - Génère les thumbnails
+   - Ajoute l'opération à la queue de sync : `ADD 10 media to Travel/Japan`
+3. Utilisateur modifie les tags de 5 photos existantes
+4. Le système ajoute à la queue : `UPDATE tags for 5 media`
+5. Réseau revient en ligne (2h plus tard)
+6. Le système détecte la reconnexion
+7. Le système traite la queue :
+   - Synchronisation des 10 nouveaux médias vers instance distante
+   - Synchronisation des modifications de tags
+   - Vérification checksums
+8. Queue vidée, synchronisation complète
+9. Logs : "Sync completed: 10 added, 5 updated, 0 conflicts"
 
 ---
 
-## 6. Critères de succès
+## 8. Contraintes et Hypothèses
 
-### 6.1 Critères fonctionnels
+### Contraintes
 
-- ✅ Toutes les exigences critiques et élevées implémentées
-- ✅ Scénarios d'usage validés par tests end-to-end
-- ✅ Interface CLI complète et documentée
-- ✅ API REST fonctionnelle avec documentation OpenAPI
-- ✅ Interface web basique opérationnelle
+**Techniques** :
+- Python ≥3.10
+- SQLite comme base de données embarquée
+- Pas de droit sudo requis (installation utilisateur)
 
-### 6.2 Critères techniques
+**Organisationnelles** :
+- Développement open source (MIT)
+- Documentation en anglais
+- Releases semantic versioning
 
-- ✅ Couverture de tests > 85%
-- ✅ Performance conforme aux exigences (< 100ms recherche, < 1s sync)
-- ✅ Zéro vulnérabilité critique (scan de sécurité)
-- ✅ Documentation technique complète
+**Temporelles** :
+- v1.0 en décembre 2026 (11 mois)
 
-### 6.3 Critères utilisateur
+### Hypothèses
 
-- ✅ Temps de prise en main < 1h (mesure via user testing)
-- ✅ Retours utilisateurs positifs (> 80% satisfaction)
-- ✅ Migration réussie depuis prompt-imagine (validation sur cas réel)
+**Usage** :
+- Utilisateurs avec connaissances informatiques de base
+- Accès à Internet pour synchronisation (mais non requis localement)
+- Stockage local suffisant (10-100 GB)
 
----
-
-## 7. Limites et contraintes
-
-### 7.1 Limites techniques
-
-- **Taille maximale d'un hypermedia composite** : 1000 composants (limite de profondeur récursive : 10 niveaux)
-- **Taille maximale d'un média** : 10 GB (configurable)
-- **Nombre maximal d'abonnements** : 50 par instance
-- **Taille maximale du cache** : Limitée par l'espace disque disponible
-
-### 7.2 Contraintes opérationnelles
-
-- **Synchronisation** : Requiert une connectivité réseau stable
-- **Performance** : Dégradation possible avec > 100k médias (requiert optimisation BDD)
-- **Compatibilité** : Python 3.10+ uniquement (pas de support Python 2.x ou 3.9-)
-
-### 7.3 Évolutions futures
-
-- Chiffrement end-to-end (version 1.1)
-- Auto-tagging par IA (version 1.2)
-- Architecture P2P complète (version 2.0)
-- Applications mobiles (version 2.1)
+**Infrastructure** :
+- Réseau local fiable (LAN)
+- Bande passante Internet correcte pour sync (1 Mbps minimum)
 
 ---
 
-## 8. Glossaire
+## 9. Critères d'Acceptation
 
-- **HM-Drive** : Instance du système de stockage Hypermedia
-- **Collection** : Dossier logique organisant les médias (équivalent d'un répertoire)
-- **Média** : Fichier simple (image, vidéo, audio, texte)
-- **Hypermedia** : Fichier composite référençant d'autres médias ou hypermedia
-- **Définisseur** : Fragment textuel pondéré décrivant un média (inspiré des prompts IA)
-- **HM-DSS** : Hypermedia Dynamic Scene Sheet, langage de mise en scène
-- **URI HM** : Identifiant universel de ressource au format `hm://[instance]/[collection]/[path]`
-- **Abonnement** : Configuration de synchronisation vers un drive distant
-- **Cache local** : Stockage temporaire des médias distants
-- **Checksum** : Empreinte cryptographique BLAKE2b pour identification unique
-- **Généalogie** : Graphe de relations (ancêtres/descendants) entre médias
+### Phase 1 (HM-Drive local)
+- [ ] Import de 1000 images en < 30s
+- [ ] Détection 100% des doublons (même checksum)
+- [ ] Recherche full-text opérationnelle
+- [ ] Tags avec autocomplétion
+
+### Phase 3 (Distribution)
+- [ ] Synchronisation 10GB en < 5min (LAN)
+- [ ] Mode déconnecté : queue persistante
+- [ ] Résolution conflits sans perte de données
+
+### Phase 5 (HM-Scene)
+- [ ] Rendu scène 100 médias en < 1s
+- [ ] 10+ templates HM-DSS fournis
+- [ ] Navigation 60fps
+
+### Phase 7 (Production)
+- [ ] Package PyPI installable
+- [ ] Documentation complète (>100 pages)
+- [ ] 10+ alpha testeurs
+- [ ] Couverture tests >90%
+- [ ] Migration prompt-imagine automatisée
+
+---
+
+## Conclusion
+
+Ces spécifications fonctionnelles définissent un système complet de gestion d'hypermedia distribué, héritant des forces de prompt-imagine tout en apportant distribution, résilience et mise en scène avancée. Les 20 cas d'usage et 40 exigences fonctionnelles couvrent l'ensemble des besoins identifiés, avec des critères d'acceptation mesurables.
